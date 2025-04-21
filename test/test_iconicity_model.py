@@ -130,4 +130,40 @@ def test_iconicity_model():
     # Verificar filtrado por proporción conocida
     high_known_words = model.get_words_by_known_proportion(min_prop=0.85)
     assert len(high_known_words) == 1
-    assert 'adiós' in high_known_words 
+    assert 'adiós' in high_known_words
+
+def test_get_all_word_data(model):
+    """
+    Prueba que get_all_word_data devuelve correctamente todo el diccionario de datos.
+    """
+    all_data = model.get_all_word_data()
+    
+    # Verificar que el diccionario contiene todas las palabras
+    assert len(all_data) == 3
+    
+    # Verificar que los datos de cada palabra están completos
+    assert 'casa' in all_data
+    assert 'perro' in all_data
+    assert 'gato' in all_data
+    
+    # Verificar que los datos de cada palabra son correctos
+    casa_data = all_data['casa']
+    assert casa_data['n_ratings'] == 10
+    assert casa_data['n'] == 15
+    assert casa_data['prop_knwn'] == 0.8
+    assert casa_data['rating'] == 4.5
+    assert casa_data['rating_sd'] == 1.2
+    
+    perro_data = all_data['perro']
+    assert perro_data['n_ratings'] == 12
+    assert perro_data['n'] == 15
+    assert perro_data['prop_knwn'] == 0.9
+    assert perro_data['rating'] == 3.8
+    assert perro_data['rating_sd'] == 1.0
+    
+    gato_data = all_data['gato']
+    assert gato_data['n_ratings'] == 8
+    assert gato_data['n'] == 15
+    assert gato_data['prop_knwn'] == 0.7
+    assert gato_data['rating'] == 4.2
+    assert gato_data['rating_sd'] == 1.1 

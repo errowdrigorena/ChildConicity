@@ -90,4 +90,14 @@ class IconicityModel:
             if (min_prop is None or prop >= min_prop) and \
                (max_prop is None or prop <= max_prop):
                 filtered_words[word] = data
-        return filtered_words 
+        return filtered_words
+    
+    def get_all_word_data(self):
+        """
+        Devuelve el diccionario completo con todos los datos de todas las palabras.
+        
+        Returns:
+            dict: Diccionario donde las claves son las palabras y los valores son
+                 diccionarios con todos sus datos (n_ratings, n, prop_knwn, rating, rating_sd)
+        """
+        return self.word_data 
