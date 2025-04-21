@@ -48,17 +48,22 @@ class DataFormatter:
         data = self.reader.read_cha(file_path)
         if data is not None:
             utterances = data['metadata']['utterances']
+            # Inicializar contadores independientes
+            child_counter = 1
+            adult_counter = 1
             # Separar las expresiones por hablante
-            for i, utterance in enumerate(utterances):
+            for utterance in utterances:
                 entry = {
                     'speaker': utterance['speaker'],
                     'text': utterance['text'],
                     'timestamp': utterance['timestamp']
                 }
                 if self.is_children(utterance['speaker']):
-                    self.children_data[i+1] = entry
+                    self.children_data[child_counter] = entry
+                    child_counter += 1
                 else:
-                    self.adults_data[i+1] = entry
+                    self.adults_data[adult_counter] = entry
+                    adult_counter += 1
             return self.children_data, self.adults_data
         return None, None
     
