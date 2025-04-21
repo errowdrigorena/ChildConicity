@@ -1,5 +1,6 @@
 from src.reader import Reader
 from src.data_formatter import DataFormatter
+from src.word_counter import WordCounter
 
 if __name__ == "__main__":
     # Procesar archivo CSV
@@ -54,4 +55,27 @@ if __name__ == "__main__":
         print(f"\nOpciones: {', '.join(metadata['options'])}")
         print(f"Medios: {metadata['media']['id']} ({metadata['media']['type']})")
         print(f"Fecha: {metadata['date']}")
-        print(f"Tipos: {', '.join(metadata['types'])}") 
+        print(f"Tipos: {', '.join(metadata['types'])}")
+    
+    print("\n" + "="*50 + "\n")
+    
+    # Análisis de palabras
+    print("Análisis de palabras:")
+    
+    # Contar palabras en las expresiones de niños
+    print("\nPalabras más comunes en niños:")
+    child_counter = WordCounter()
+    child_counts = child_counter.count_words(children_data)
+    print("\n10 palabras más comunes en niños:")
+    for word, count in child_counter.get_most_common(10):
+        print(f"{word}: {count} veces")
+    
+    print("\n" + "="*50 + "\n")
+    
+    # Contar palabras en las expresiones de adultos
+    print("Palabras más comunes en adultos:")
+    adult_counter = WordCounter()
+    adult_counts = adult_counter.count_words(adults_data)
+    print("\n10 palabras más comunes en adultos:")
+    for word, count in adult_counter.get_most_common(10):
+        print(f"{word}: {count} veces") 
