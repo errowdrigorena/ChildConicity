@@ -85,13 +85,36 @@ if __name__ == "__main__":
     
     # Análisis de iconicidad
     print("Análisis de iconicidad:")
+    
+    # Verificar el contenido de csv_data
+    print("\nVerificación de datos CSV:")
+    if csv_data is None:
+        print("Error: No se pudieron cargar los datos del CSV")
+    else:
+        print(f"Total de entradas en CSV: {len(csv_data)}")
+        if len(csv_data) > 0:
+            first_entry = next(iter(csv_data.values()))
+            print("\nEstructura de una entrada:")
+            for key, value in first_entry.items():
+                print(f"{key}: {value}")
+    
+    # Crear el modelo de iconicidad
     iconicity_model = IconicityModel(csv_data)
-    print("\nDatos de las primeras 5 palabras:")
-    for word in list(iconicity_model.get_all_words())[:5]:
-        data = iconicity_model.get_word_data(word)
-        print(f"\nPalabra: {word}")
-        print(f"  n_ratings: {data['n_ratings']}")
-        print(f"  n: {data['n']}")
-        print(f"  prop_knwn: {data['prop_knwn']:.2f}")
-        print(f"  rating: {data['rating']:.2f}")
-        print(f"  rating_sd: {data['rating_sd']:.2f}") 
+    
+    # Verificar el contenido del modelo
+    print("\nVerificación del modelo de iconicidad:")
+    all_words = iconicity_model.get_all_words()
+    print(f"Total de palabras en el modelo: {len(all_words)}")
+    if len(all_words) > 0:
+        print("\nDatos de las primeras 5 palabras:")
+        for word in list(all_words)[:5]:
+            data = iconicity_model.get_word_data(word)
+            if data is not None:
+                print(f"\nPalabra: {word}")
+                print(f"  n_ratings: {data['n_ratings']}")
+                print(f"  n: {data['n']}")
+                print(f"  prop_knwn: {data['prop_knwn']:.2f}")
+                print(f"  rating: {data['rating']:.2f}")
+                print(f"  rating_sd: {data['rating_sd']:.2f}")
+            else:
+                print(f"\nError: No se encontraron datos para la palabra '{word}'") 
