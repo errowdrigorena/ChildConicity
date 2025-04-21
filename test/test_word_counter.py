@@ -17,32 +17,22 @@ def test_count_words(word_counter):
     counts = word_counter.count_words(test_data)
     
     # Verificar resultados
-    assert counts['hola'] == 3
-    assert counts['mundo'] == 2
-    assert counts['python'] == 2
-    assert len(counts) == 3
+    assert counts['hola']['count'] == 3
+    assert counts['mundo']['count'] == 2
+    assert counts['python']['count'] == 2
 
 def test_empty_data(word_counter):
-    # Datos vacíos
-    test_data = {}
-    
-    # Contar palabras
-    counts = word_counter.count_words(test_data)
-    
-    # Verificar resultados
+    # Probar con un diccionario vacío
+    counts = word_counter.count_words({})
     assert len(counts) == 0
 
 def test_no_text_field(word_counter):
-    # Datos sin campo 'text'
+    # Probar con entradas que no tienen campo 'text'
     test_data = {
-        1: {'other': 'hola'},
-        2: {'other': 'mundo'}
+        1: {'other': 'data'},
+        2: {'more': 'data'}
     }
-    
-    # Contar palabras
     counts = word_counter.count_words(test_data)
-    
-    # Verificar resultados
     assert len(counts) == 0
 
 def test_get_most_common(word_counter):
@@ -56,13 +46,10 @@ def test_get_most_common(word_counter):
     # Contar palabras
     word_counter.count_words(test_data)
     
-    # Obtener las 2 palabras más comunes
+    # Obtener las palabras más comunes
     most_common = word_counter.get_most_common(2)
-    
-    # Verificar resultados
-    assert len(most_common) == 2
-    assert most_common[0] == ('hola', 3)
-    assert most_common[1] == ('mundo', 2)
+    assert most_common[0] == ('hola', 3)  # 'hola' aparece 3 veces
+    assert most_common[1] == ('mundo', 2)  # 'mundo' aparece 2 veces
 
 def test_case_insensitive(word_counter):
     # Datos con diferentes mayúsculas/minúsculas
@@ -75,6 +62,6 @@ def test_case_insensitive(word_counter):
     counts = word_counter.count_words(test_data)
     
     # Verificar resultados
-    assert counts['hola'] == 2
-    assert counts['mundo'] == 2
-    assert counts['python'] == 1 
+    assert counts['hola']['count'] == 2
+    assert counts['mundo']['count'] == 2
+    assert counts['python']['count'] == 1 

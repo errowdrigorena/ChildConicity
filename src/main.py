@@ -2,6 +2,7 @@ from src.reader import Reader
 from src.data_formatter import DataFormatter
 from src.word_counter import WordCounter
 from src.iconicity_model import IconicityModel
+from src.word_dictionary_merger import WordDictionaryMerger
 
 if __name__ == "__main__":
     # Procesar archivo CSV
@@ -104,15 +105,25 @@ if __name__ == "__main__":
     # Verificar el contenido del modelo
     print("\nVerificación del modelo de iconicidad:")
     all_words = iconicity_model.get_all_word_data()
-    print(f"Total de palabras en el modelo: {len(all_words)}")
-    if len(all_words) > 0:
-        print("\nDatos de las primeras 5 palabras:")
-        for word in list(all_words)[:5]:
-            data = iconicity_model.get_word_data(word)
-            if data is not None:
-                print(f"\nPalabra: {word}")
-                print(f"  Número de valoraciones: {data['n_ratings']}")
-                print(f"  Número de participantes: {data['n']}")
-                print(f"  Proporción conocida: {data['prop_known']}")
-                print(f"  Valoración media: {data['rating']}")
-                print(f"  Desviación estándar: {data['rating_sd']}")
+    
+    # Crear instancia de WordDictionaryMerger y añadir diccionarios
+    merger = WordDictionaryMerger()
+    merger.add_dictionary(all_words)
+    merger.add_dictionary(adult_counts)
+    merger.add_dictionary(child_counts)
+    
+    # Obtener el merge
+    merged_dict, unmerged_dictionaries = merger.obtain_merge()
+    
+    # Mostrar algunas estadísticas
+    print("\nEstadísticas del merge:")
+    print(f"Número de palabras en el diccionario mergeado: {len(merged_dict)}")
+    print(f"Número de diccionarios no mergeados: {len(unmerged_dictionaries)}")
+    
+    # Mostrar algunas palabras del diccionario mergeado
+    print("\nEjemplos de palabras en el diccionario mergeado:")
+    for i, (word, data) in enumerate(merged_dict.items()):
+        if i < 5:  # Mostrar solo las primeras 5 palabras
+            print(f"\nPalabra: {word}")
+            print(f"Datos: {data}")
+

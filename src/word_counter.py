@@ -2,47 +2,60 @@ import re
 from collections import defaultdict
 
 class WordCounter:
+    """
+    Clase para contar palabras en un diccionario de datos.
+    """
+    
     def __init__(self):
+        """
+        Inicializa el contador de palabras.
+        """
         self.word_counts = defaultdict(int)
     
     def count_words(self, data_dict):
         """
-        Cuenta las ocurrencias de cada palabra en los campos 'text' de un diccionario.
+        Cuenta las palabras en los campos 'text' del diccionario.
         
         Args:
-            data_dict (dict): Diccionario con entradas que contienen un campo 'text'
+            data_dict (dict): Diccionario con campos 'text' para procesar.
             
         Returns:
-            dict: Diccionario con palabras como claves y su número de ocurrencias como valores
+            dict: Diccionario con palabras como claves y diccionarios de conteo como valores.
+                 Formato: {'palabra': {'count': N}}
         """
-        self.word_counts.clear()  # Limpiar contadores anteriores
+        # Reiniciar el contador
+        self.word_counts.clear()
         
+        # Contar palabras en cada entrada
         for entry in data_dict.values():
-            if 'text' in entry and isinstance(entry['text'], str):
-                # Dividir el texto en palabras, eliminando puntuación y convirtiendo a minúsculas
+            if 'text' in entry:
+                # Encontrar todas las palabras usando regex
                 words = re.findall(r'\b\w+\b', entry['text'].lower())
                 for word in words:
                     self.word_counts[word] += 1
         
-        return dict(self.word_counts)
+        # Convertir el defaultdict a un diccionario con el formato deseado
+        return {word: {'count': count} for word, count in self.word_counts.items()}
     
     def get_word_counts(self):
         """
-        Devuelve el diccionario con los conteos de palabras.
+        Obtiene el diccionario de conteo de palabras.
         
         Returns:
-            dict: Diccionario con palabras como claves y su número de ocurrencias como valores
+            dict: Diccionario con palabras como claves y sus conteos como valores.
         """
         return dict(self.word_counts)
     
     def get_most_common(self, n=10):
         """
-        Devuelve las n palabras más comunes.
+        Obtiene las n palabras más comunes.
         
         Args:
-            n (int): Número de palabras más comunes a devolver
+            n (int): Número de palabras a retornar.
             
         Returns:
-            list: Lista de tuplas (palabra, conteo) ordenadas por frecuencia descendente
+            list: Lista de tuplas (palabra, conteo) ordenadas por frecuencia.
         """
-        return sorted(self.word_counts.items(), key=lambda x: x[1], reverse=True)[:n] 
+        # Ordenar por conteo y luego alfabéticamente para desempates
+        return sorted(self.word_counts.items(), 
+                     key=lambda x: (-x[1], x[0]))[:n] 
