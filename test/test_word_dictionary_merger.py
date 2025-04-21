@@ -69,4 +69,113 @@ def test_obtain_merge(merger, sample_dictionaries):
     assert len(unmerged) == 3
     assert 'gato' in unmerged[0]
     assert 'mesa' in unmerged[1]
-    assert 'silla' in unmerged[2] 
+    assert 'silla' in unmerged[2]
+
+def test_sort_by_parameter_gt():
+    """Test para ordenar palabras con rating mayor que un umbral"""
+    merger = WordDictionaryMerger()
+    
+    # Añadir diccionarios de prueba
+    dict1 = {
+        'casa': {'rating': 4.5, 'prop_knwn': 0.9},
+        'perro': {'rating': 3.8, 'prop_knwn': 0.8},
+        'gato': {'rating': 4.2, 'prop_knwn': 0.7}
+    }
+    
+    dict2 = {
+        'casa': {'n_ratings': 10},
+        'perro': {'n_ratings': 8},
+        'gato': {'n_ratings': 12}
+    }
+    
+    merger.add_dictionary(dict1)
+    merger.add_dictionary(dict2)
+    
+    # Ordenar por rating > 4.0
+    sorted_words = merger.sort_by_parameter('rating', 'gt', 4.0)
+    
+    # Verificar que solo contiene palabras con rating > 4.0
+    assert len(sorted_words) == 2
+    assert 'casa' in sorted_words
+    assert 'gato' in sorted_words
+    assert 'perro' not in sorted_words
+    
+    # Verificar que está ordenado de mayor a menor rating
+    words = list(sorted_words.keys())
+    assert words[0] == 'casa'  # rating 4.5
+    assert words[1] == 'gato'  # rating 4.2
+
+def test_sort_by_parameter_lt():
+    """Test para ordenar palabras con prop_knwn menor que un umbral"""
+    merger = WordDictionaryMerger()
+    
+    # Añadir diccionarios de prueba
+    dict1 = {
+        'casa': {'rating': 4.5, 'prop_knwn': 0.9},
+        'perro': {'rating': 3.8, 'prop_knwn': 0.8},
+        'gato': {'rating': 4.2, 'prop_knwn': 0.7}
+    }
+    
+    merger.add_dictionary(dict1)
+    
+    # Ordenar por prop_knwn < 0.8
+    sorted_words = merger.sort_by_parameter('prop_knwn', 'lt', 0.8)
+    
+    # Verificar que solo contiene palabras con prop_knwn < 0.8
+    assert len(sorted_words) == 1
+    assert 'gato' in sorted_words
+    assert 'casa' not in sorted_words
+    assert 'perro' not in sorted_words
+
+def test_sort_by_parameter_no_threshold():
+    """Test para ordenar palabras sin umbral"""
+    merger = WordDictionaryMerger()
+    
+    # Añadir diccionarios de prueba
+    dict1 = {
+        'casa': {'rating': 4.5},
+        'perro': {'rating': 3.8},
+        'gato': {'rating': 4.2}
+    }
+    
+    merger.add_dictionary(dict1)
+    
+    # Ordenar por rating sin umbral
+    sorted_words = merger.sort_by_parameter('rating', 'gt')
+    
+    # Verificar que contiene todas las palabras
+    assert len(sorted_words) == 3
+    
+    # Verificar que está ordenado de mayor a menor rating
+    words = list(sorted_words.keys())
+    assert words[0] == 'casa'  # rating 4.5
+    assert words[1] == 'gato'  # rating 4.2
+    assert words[2] == 'perro'  # rating 3.8
+
+def test_sort_by_parameter_invalid_parameter():
+    """Test para parámetro inválido"""
+    merger = WordDictionaryMerger()
+    
+    dict1 = {'casa': {'rating': 4.5}}
+    merger.add_dictionary(dict1)
+    
+    # Intentar ordenar por un parámetro que no existe
+    sorted_words = merger.sort_by_parameter('invalid_param', 'gt')
+    assert len(sorted_words) == 0
+
+def test_sort_by_parameter_non_numeric():
+    """Test para valores no numéricos"""
+    merger = WordDictionaryMerger()
+    
+    dict1 = {
+        'casa': {'rating': 'high'},
+        'perro': {'rating': 3.8}
+    }
+    
+    merger.add_dictionary(dict1)
+    
+    # Ordenar por rating, ignorando el valor no numérico
+    sorted_words = merger.sort_by_parameter('rating', 'gt')
+    assert len(sorted_words) == 1
+    assert 'perro' in sorted_words
+    assert 'casa' not in sorted_words 
