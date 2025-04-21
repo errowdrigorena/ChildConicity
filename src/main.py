@@ -1,6 +1,7 @@
 from src.reader import Reader
 from src.data_formatter import DataFormatter
 from src.word_counter import WordCounter
+from src.iconicity_model import IconicityModel
 
 if __name__ == "__main__":
     # Procesar archivo CSV
@@ -78,4 +79,19 @@ if __name__ == "__main__":
     adult_counts = adult_counter.count_words(adults_data)
     print("\n10 palabras más comunes en adultos:")
     for word, count in adult_counter.get_most_common(10):
-        print(f"{word}: {count} veces") 
+        print(f"{word}: {count} veces")
+    
+    print("\n" + "="*50 + "\n")
+    
+    # Análisis de iconicidad
+    print("Análisis de iconicidad:")
+    iconicity_model = IconicityModel(csv_data)
+    print("\nDatos de las primeras 5 palabras:")
+    for word in list(iconicity_model.get_all_words())[:5]:
+        data = iconicity_model.get_word_data(word)
+        print(f"\nPalabra: {word}")
+        print(f"  n_ratings: {data['n_ratings']}")
+        print(f"  n: {data['n']}")
+        print(f"  prop_knwn: {data['prop_knwn']:.2f}")
+        print(f"  rating: {data['rating']:.2f}")
+        print(f"  rating_sd: {data['rating_sd']:.2f}") 

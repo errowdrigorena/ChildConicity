@@ -23,12 +23,12 @@ class IconicityModel:
             data_dict (dict): Diccionario con las entradas del CSV
         """
         for entry_id, entry in data_dict.items():
-            if all(key in entry for key in ['word', 'n_ratings', 'n', 'prop_knwn', 'rating', 'rating_sd']):
+            if all(key in entry for key in ['word', 'n_ratings', 'n', 'prop_known', 'rating', 'rating_sd']):
                 word = entry['word']
                 self.word_data[word] = {
                     'n_ratings': entry['n_ratings'],
                     'n': entry['n'],
-                    'prop_knwn': entry['prop_knwn'],
+                    'prop_knwn': entry['prop_known'],
                     'rating': entry['rating'],
                     'rating_sd': entry['rating_sd']
                 }
