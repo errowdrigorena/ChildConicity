@@ -80,4 +80,54 @@ def test_get_words_by_known_proportion(model):
     assert 'gato' in low_prop_words
 
 def test_invalid_word(model):
-    assert model.get_word_data('nonexistent') is None 
+    assert model.get_word_data('nonexistent') is None
+
+def test_iconicity_model():
+    # Datos de prueba
+    test_data = {
+        1: {
+            'word': 'hola',
+            'n_ratings': 10,
+            'n': 5,
+            'prop_knwn': 0.8,
+            'rating': 3.5,
+            'rating_sd': 0.5
+        },
+        2: {
+            'word': 'adiós',
+            'n_ratings': 8,
+            'n': 4,
+            'prop_knwn': 0.9,
+            'rating': 4.0,
+            'rating_sd': 0.3
+        }
+    }
+    
+    # Crear instancia del modelo
+    model = IconicityModel(test_data)
+    
+    # Verificar que los datos se procesaron correctamente
+    hola_data = model.get_word_data('hola')
+    assert hola_data is not None
+    assert hola_data['n_ratings'] == 10
+    assert hola_data['rating'] == 3.5
+    assert hola_data['prop_knwn'] == 0.8
+    
+    adios_data = model.get_word_data('adiós')
+    assert adios_data is not None
+    assert adios_data['n_ratings'] == 8
+    assert adios_data['rating'] == 4.0
+    assert adios_data['prop_knwn'] == 0.9
+    
+    # Verificar que get_all_words devuelve todas las palabras
+    assert set(model.get_all_words()) == {'hola', 'adiós'}
+    
+    # Verificar filtrado por rating
+    high_rating_words = model.get_words_by_rating(min_rating=4.0)
+    assert len(high_rating_words) == 1
+    assert 'adiós' in high_rating_words
+    
+    # Verificar filtrado por proporción conocida
+    high_known_words = model.get_words_by_known_proportion(min_prop=0.85)
+    assert len(high_known_words) == 1
+    assert 'adiós' in high_known_words 

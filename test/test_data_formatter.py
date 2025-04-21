@@ -53,7 +53,7 @@ def test_format_cha_data(formatter, test_files):
     
     # Verificar datos de adultos
     assert len(adults_data) == 1
-    assert adults_data[2]['text'].strip() == 'buenos días'
+    assert adults_data[1]['text'].strip() == 'buenos días'
 
 def test_get_data_methods(formatter, test_files):
     formatter.format_cha_data_from(test_files['cha'])
