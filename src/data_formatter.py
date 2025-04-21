@@ -1,4 +1,4 @@
-from reader import Reader
+from src.reader import Reader
 
 class DataFormatter:
     def __init__(self):
