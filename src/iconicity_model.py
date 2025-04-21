@@ -8,11 +8,17 @@ class IconicityModel:
                 - word: palabra
                 - n_ratings: número de valoraciones
                 - n: número de participantes
-                - prop_knwn: proporción de participantes que conocen la palabra
+                - prop_known: proporción de participantes que conocen la palabra
                 - rating: valoración media
                 - rating_sd: desviación estándar de la valoración
         """
         self.word_data = {}
+        print(f"\nDepuración - Total de entradas recibidas: {len(data_dict)}")
+        if len(data_dict) > 0:
+            first_entry = next(iter(data_dict.values()))
+            print("\nDepuración - Primera entrada recibida:")
+            for key, value in first_entry.items():
+                print(f"{key}: {value}")
         self._process_data(data_dict)
     
     def _process_data(self, data_dict):
@@ -23,15 +29,21 @@ class IconicityModel:
             data_dict (dict): Diccionario con las entradas del CSV
         """
         for entry_id, entry in data_dict.items():
-            if all(key in entry for key in ['word', 'n_ratings', 'n', 'prop_knwn', 'rating', 'rating_sd']):
+            if all(key in entry for key in ['word', 'n_ratings', 'n', 'prop_known', 'rating', 'rating_sd']):
                 word = entry['word']
                 self.word_data[word] = {
                     'n_ratings': entry['n_ratings'],
                     'n': entry['n'],
-                    'prop_knwn': entry['prop_knwn'],
+                    'prop_known': entry['prop_known'],
                     'rating': entry['rating'],
                     'rating_sd': entry['rating_sd']
                 }
+            else:
+                print(f"\nDepuración - Entrada {entry_id} no tiene todos los campos requeridos:")
+                for key, value in entry.items():
+                    print(f"{key}: {value}")
+        
+        print(f"\nDepuración - Total de palabras procesadas: {len(self.word_data)}")
     
     def get_word_data(self, word):
         """
@@ -86,7 +98,7 @@ class IconicityModel:
         """
         filtered_words = {}
         for word, data in self.word_data.items():
-            prop = data['prop_knwn']
+            prop = data['prop_known']
             if (min_prop is None or prop >= min_prop) and \
                (max_prop is None or prop <= max_prop):
                 filtered_words[word] = data
@@ -98,6 +110,6 @@ class IconicityModel:
         
         Returns:
             dict: Diccionario donde las claves son las palabras y los valores son
-                 diccionarios con todos sus datos (n_ratings, n, prop_knwn, rating, rating_sd)
+                 diccionarios con todos sus datos (n_ratings, n, prop_known, rating, rating_sd)
         """
         return self.word_data 

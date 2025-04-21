@@ -103,7 +103,7 @@ if __name__ == "__main__":
     
     # Verificar el contenido del modelo
     print("\nVerificación del modelo de iconicidad:")
-    all_words = iconicity_model.get_all_words()
+    all_words = iconicity_model.get_all_word_data()
     print(f"Total de palabras en el modelo: {len(all_words)}")
     if len(all_words) > 0:
         print("\nDatos de las primeras 5 palabras:")
@@ -111,10 +111,8 @@ if __name__ == "__main__":
             data = iconicity_model.get_word_data(word)
             if data is not None:
                 print(f"\nPalabra: {word}")
-                print(f"  n_ratings: {data['n_ratings']}")
-                print(f"  n: {data['n']}")
-                print(f"  prop_knwn: {data['prop_knwn']:.2f}")
-                print(f"  rating: {data['rating']:.2f}")
-                print(f"  rating_sd: {data['rating_sd']:.2f}")
-            else:
-                print(f"\nError: No se encontraron datos para la palabra '{word}'") 
+                print(f"  Número de valoraciones: {data['n_ratings']}")
+                print(f"  Número de participantes: {data['n']}")
+                print(f"  Proporción conocida: {data['prop_known']}")
+                print(f"  Valoración media: {data['rating']}")
+                print(f"  Desviación estándar: {data['rating_sd']}")
