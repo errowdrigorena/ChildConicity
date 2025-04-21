@@ -1,5 +1,5 @@
-from reader import Reader
-from data_formatter import DataFormatter
+from src.reader import Reader
+from src.data_formatter import DataFormatter
 
 if __name__ == "__main__":
     # Procesar archivo CSV
