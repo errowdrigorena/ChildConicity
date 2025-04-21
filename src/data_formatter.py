@@ -43,7 +43,7 @@ class DataFormatter:
             file_path (str): Ruta del archivo .cha a leer
             
         Returns:
-            tuple: (children_data, adults_data) - Diccionarios con los datos separados
+            tuple: (children_data, adults_data) - Diccionarios con los datos separados por niños y adultos
         """
         data = self.reader.read_cha(file_path)
         if data is not None:
