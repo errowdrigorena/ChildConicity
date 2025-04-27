@@ -140,7 +140,7 @@ if __name__ == "__main__":
     for i, (word, data) in enumerate(sorted_merged_dict.items()):
         if i >= 10:
             break
-        print(f"{word}: Rating={data['rating']}, Count={data.get('count', 0)}")
+        print(f"{word}: Rating={data['rating']}, Count={data.get('count', 0)}")    
 
     # Leer el DirectorioBrent
     print("\n" + "="*50 + "\n")
@@ -173,4 +173,22 @@ if __name__ == "__main__":
     # Mostrar la estructura del directorio
     print("\nEstructura de Brent:")
     print_directory_structure(brent_data)
+
+    # Mostrar el contenido de un archivo específico
+    print("\n" + "="*50 + "\n")
+    print("Contenido del primer archivo encontrado:")
+    
+    # Obtener el contenido del primer archivo que encontremos
+    first_file = None
+    for dir_name, content in brent_data['Brent'].items():
+        if 'files' in content and content['files']:
+            first_file = content['files'][0]
+            print(f"Archivo: {first_file['metadata']['file_path']}")
+            break
+    
+    if first_file:
+        # Mostrar metadatos
+        print("\nMetadatos:")
+        for key, value in first_file['metadata'].items():
+            print(f"{key}: {value}")
 
