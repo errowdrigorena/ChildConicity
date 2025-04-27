@@ -191,4 +191,25 @@ if __name__ == "__main__":
         print("\nMetadatos:")
         for key, value in first_file['metadata'].items():
             print(f"{key}: {value}")
+        
+        # Procesar el archivo usando DataFormatter
+        print("\nProcesando archivo con DataFormatter:")
+        file_path = first_file['metadata']['file_path']
+        children_data, adults_data = formatter.format_cha_data_from(file_path)
+        
+        print("\nPrimeras 10 expresiones de niños:")
+        for id, entry in list(children_data.items())[:10]:
+            print(f"\n{id}:")
+            print(f"  Hablante: {entry['speaker']}")
+            print(f"  Texto: {entry['text']}")
+            if entry['timestamp']:
+                print(f"  Tiempo: {entry['timestamp']['start']}-{entry['timestamp']['end']}")
+        
+        print("\nPrimeras 10 expresiones de adultos:")
+        for id, entry in list(adults_data.items())[:10]:
+            print(f"\n{id}:")
+            print(f"  Hablante: {entry['speaker']}")
+            print(f"  Texto: {entry['text']}")
+            if entry['timestamp']:
+                print(f"  Tiempo: {entry['timestamp']['start']}-{entry['timestamp']['end']}")
 
