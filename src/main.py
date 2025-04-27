@@ -110,7 +110,7 @@ if __name__ == "__main__":
     merger = WordDictionaryMerger()
     merger.add_dictionary(all_words)
     merger.add_dictionary(adult_counts)
-    merger.add_dictionary(child_counts)
+    # merger.add_dictionary(child_counts)
     
     # Obtener el merge
     merged_dict, unmerged_dictionaries = merger.obtain_merge()
@@ -126,4 +126,51 @@ if __name__ == "__main__":
         if i < 5:  # Mostrar solo las primeras 5 palabras
             print(f"\nPalabra: {word}")
             print(f"Datos: {data}")
+
+    # Ordenar el diccionario mergeado por rating de mayor a menor
+    print("\nDiccionario mergeado ordenado por rating (de mayor a menor):")
+    sorted_merged_dict = dict(sorted(
+        merged_dict.items(),
+        key=lambda x: x[1]['rating'],
+        reverse=True
+    ))
+    
+    # Mostrar las primeras 10 palabras ordenadas
+    print("\nTop 10 palabras por rating:")
+    for i, (word, data) in enumerate(sorted_merged_dict.items()):
+        if i >= 10:
+            break
+        print(f"{word}: Rating={data['rating']}, Count={data.get('count', 0)}")
+
+    # Leer el DirectorioBrent
+    print("\n" + "="*50 + "\n")
+    print("Leyendo Brent:")
+    reader = Reader()
+    brent_data = reader.read_directory('Brent')
+    
+    def print_directory_structure(data, level=0):
+        """
+        Imprime la estructura del directorio de forma visual.
+        
+        Args:
+            data (dict): Diccionario con la estructura del directorio
+            level (int): Nivel de indentación actual
+        """
+        for dir_name, content in data.items():
+            # Imprimir el nombre del directorio
+            print("  " * level + "📁 " + dir_name)
+            
+            # Si hay archivos, imprimirlos
+            if 'files' in content:
+                for file in content['files']:
+                    print("  " * (level + 1) + "📄 " + file['metadata']['file_path'])
+            
+            # Procesar subdirectorios
+            for key, value in content.items():
+                if key != 'files':
+                    print_directory_structure({key: value}, level + 1)
+    
+    # Mostrar la estructura del directorio
+    print("\nEstructura de Brent:")
+    print_directory_structure(brent_data)
 

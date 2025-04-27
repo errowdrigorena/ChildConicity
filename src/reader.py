@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+import os
 
 class Reader:
     def __init__(self):
@@ -144,4 +145,41 @@ class Reader:
                 'start': int(match.group(1)),
                 'end': int(match.group(2))
             }
-        return None 
+        return None
+
+    def read_directory(self, directory_path):
+        """
+        Lee recursivamente todos los archivos .cha en un directorio y sus subdirectorios.
+        Crea un diccionario anidado que refleja la estructura de directorios.
+        
+        Args:
+            directory_path (str): Ruta al directorio a leer
+            
+        Returns:
+            dict: Diccionario anidado con la estructura de directorios y archivos
+        """
+        # Obtener el nombre del directorio base
+        base_dir = os.path.basename(directory_path)
+        
+        # Crear el diccionario para este directorio
+        result = {base_dir: {}}
+        
+        # Recorrer el directorio
+        for item in os.listdir(directory_path):
+            item_path = os.path.join(directory_path, item)
+            
+            if os.path.isdir(item_path):
+                # Si es un directorio, leerlo recursivamente
+                subdir_content = self.read_directory(item_path)
+                # Añadir el contenido del subdirectorio al diccionario actual
+                result[base_dir][item] = subdir_content[item]
+            elif item.endswith('.cha'):
+                # Si es un archivo .cha, leerlo usando read_cha
+                cha_content = self.read_cha(item_path)
+                if cha_content:
+                    # Si no existe la clave 'files', crearla
+                    if 'files' not in result[base_dir]:
+                        result[base_dir]['files'] = []
+                    result[base_dir]['files'].append(cha_content)
+        
+        return result 
