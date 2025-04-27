@@ -213,3 +213,60 @@ if __name__ == "__main__":
             if entry['timestamp']:
                 print(f"  Tiempo: {entry['timestamp']['start']}-{entry['timestamp']['end']}")
 
+    # Procesar todos los archivos .cha en Brent_data
+    print("\n" + "="*50 + "\n")
+    print("Procesando archivos .cha en Brent_data:")
+    
+    def process_cha_files(data, current_path=""):
+        """
+        Procesa recursivamente todos los archivos .cha en la estructura de directorios.
+        
+        Args:
+            data (dict): Diccionario con la estructura del directorio
+            current_path (str): Ruta actual en el árbol de directorios
+        """
+        result_dict = {}
+            
+        for dir_name, content in data.items():
+            new_path = f"{current_path}/{dir_name}" if current_path else dir_name
+            
+            # Procesar archivos en el directorio actual
+            if 'files' in content:
+                for file in content['files']:
+                    if file['metadata']['file_path'].endswith('.cha'):
+                        file_path = file['metadata']['file_path']
+                        print(f"Procesando archivo: {file_path}")
+                        # Crear un nuevo formatter para cada archivo
+                        file_formatter = DataFormatter()
+                        children_data, adults_data = file_formatter.format_cha_data_from(file_path)
+                        
+                        # Crear entrada en el diccionario
+                        if new_path not in result_dict:
+                            result_dict[new_path] = {}
+                            
+                        filename = file_path.split('/')[-1]
+                        result_dict[new_path][filename] = {
+                            'children_data': children_data,
+                            'adults_data': adults_data
+                        }
+            
+            # Procesar subdirectorios
+            for key, value in content.items():
+                if key != 'files':
+                    subdir_results = process_cha_files({key: value}, new_path)
+                    result_dict.update(subdir_results)
+        
+        return result_dict
+    
+    # Procesar todos los archivos .cha y obtener el diccionario resultante
+    brent_processed_data = process_cha_files(brent_data)
+    
+    # Mostrar la estructura del diccionario resultante
+    print("\nEstructura del diccionario procesado:")
+    for directory, files in brent_processed_data.items():
+        print(f"\nDirectorio: {directory}")
+        for filename, data in files.items():
+            print(f"  Archivo: {filename}")
+            print(f"    Número de expresiones de niños: {len(data['children_data'])}")
+            print(f"    Número de expresiones de adultos: {len(data['adults_data'])}")
+
