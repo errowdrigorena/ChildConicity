@@ -262,11 +262,12 @@ if __name__ == "__main__":
     brent_processed_data = process_cha_files(brent_data)
     
     # Mostrar la estructura del diccionario resultante
-    print("\nEstructura del diccionario procesado:")
+    print("\nEstructura del diccionario procesado (mostrando los primeros 5 archivos por directorio):")
     for directory, files in brent_processed_data.items():
         print(f"\nDirectorio: {directory}")
-        for filename, data in files.items():
-            print(f"  Archivo: {filename}")
+        # Mostrar solo los primeros 5 archivos
+        for filename, data in list(files.items())[:5]:
+            print(f"  Archivo: {directory}/{filename}")
             print(f"    Número de expresiones de niños: {len(data['children_data'])}")
             print(f"    Número de expresiones de adultos: {len(data['adults_data'])}")
 
