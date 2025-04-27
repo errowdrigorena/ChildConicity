@@ -261,13 +261,59 @@ if __name__ == "__main__":
     # Procesar todos los archivos .cha y obtener el diccionario resultante
     brent_processed_data = process_cha_files(brent_data)
     
-    # Mostrar la estructura del diccionario resultante
-    print("\nEstructura del diccionario procesado (mostrando los primeros 5 archivos por directorio):")
+    # Crear un diccionario por directorio con los datos fusionados
+    directory_data = {}
+    
+    # Para cada directorio, fusionar los diccionarios de niños y adultos
     for directory, files in brent_processed_data.items():
+        # Extraer solo el nombre del directorio de la ruta completa
+        dir_name = directory.split('/')[-1]
+        
+        # Crear instancias separadas de WordDictionaryMerger para niños y adultos
+        children_merger = WordDictionaryMerger()
+        adults_merger = WordDictionaryMerger()
+        
+        # Añadir los diccionarios de cada archivo al merger correspondiente
+        for filename, data in files.items():
+            if data['children_data']:  # Verificar que hay datos de niños
+                children_merger.add_dictionary(data['children_data'])
+            if data['adults_data']:  # Verificar que hay datos de adultos
+                adults_merger.add_dictionary(data['adults_data'])
+        
+        # Obtener los diccionarios fusionados
+        merged_children, _ = children_merger.obtain_merge()
+        merged_adults, _ = adults_merger.obtain_merge()
+        
+        # Almacenar los datos fusionados en el diccionario del directorio
+        directory_data[dir_name] = {
+            'children_data': merged_children,
+            'adults_data': merged_adults
+        }
+    
+    # Mostrar la estructura del diccionario por directorio
+    print("\nEstructura del diccionario por directorio:")
+    for directory, data in directory_data.items():
         print(f"\nDirectorio: {directory}")
-        # Mostrar solo los primeros 5 archivos
-        for filename, data in list(files.items())[:5]:
-            print(f"  Archivo: {directory}/{filename}")
-            print(f"    Número de expresiones de niños: {len(data['children_data'])}")
-            print(f"    Número de expresiones de adultos: {len(data['adults_data'])}")
+        print(f"  Número de expresiones de niños: {len(data['children_data'])}")
+        print(f"  Número de expresiones de adultos: {len(data['adults_data'])}")
+        
+        # Mostrar algunos ejemplos de cada directorio
+        print("\n  Ejemplos de expresiones de niños:")
+        for i, (key, value) in enumerate(list(data['children_data'].items())[:3]):
+            print(f"    {key}:")
+            print(f"      Hablante: {value['speaker']}")
+            print(f"      Texto: {value['text']}")
+            if value['timestamp']:
+                print(f"      Tiempo: {value['timestamp']['start']}-{value['timestamp']['end']}")
+        
+        print("\n  Ejemplos de expresiones de adultos:")
+        for i, (key, value) in enumerate(list(data['adults_data'].items())[:3]):
+            print(f"    {key}:")
+            print(f"      Hablante: {value['speaker']}")
+            print(f"      Texto: {value['text']}")
+            if value['timestamp']:
+                print(f"      Tiempo: {value['timestamp']['start']}-{value['timestamp']['end']}")
+    
+    # Crear el diccionario final con la estructura deseada
+    final_dict = directory_data
 
