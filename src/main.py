@@ -1,10 +1,21 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.reader import Reader
 from src.data_formatter import DataFormatter
 from src.word_counter import WordCounter
 from src.iconicity_model import IconicityModel
 from src.word_dictionary_merger import WordDictionaryMerger
+from src.brent_manipulator import BrentManipulator
+
+def main():
+    manipulator = BrentManipulator()
+    manipulator.process_directory()
 
 if __name__ == "__main__":
+    main()
+
     # Procesar archivo CSV
     print("Procesando archivo CSV:")
     formatter = DataFormatter()
@@ -314,6 +325,66 @@ if __name__ == "__main__":
             if value['timestamp']:
                 print(f"      Tiempo: {value['timestamp']['start']}-{value['timestamp']['end']}")
     
-    # Crear el diccionario final con la estructura deseada
-    final_dict = directory_data
+    # Crear diccionario de contadores
+    word_counter_dictionary = {}
+    for directory, data in directory_data.items():
+        # Crear contadores para niños y adultos
+        directory_counter_children = WordCounter()
+        directory_counter_children.count_words(data['children_data'])
+        directory_counter_adults = WordCounter()
+        directory_counter_adults.count_words(data['adults_data'])
+        
+        # Almacenar ambos contadores en el diccionario
+        word_counter_dictionary[directory] = {
+            'children': directory_counter_children,
+            'adults': directory_counter_adults
+        }
 
+    # Imprimir las primeras 5 entradas del diccionario
+    print("\nPrimeras 5 entradas del diccionario word_counter_dictionary:")
+    for i, (directory, counters) in enumerate(list(word_counter_dictionary.items())[:5]):
+        print(f"\n{i+1}. Directorio: {directory}")
+        print("\nContador de niños:")
+        print(counters['children'].get_word_counts())
+        print("\nContador de adultos:")
+        print(counters['adults'].get_word_counts())
+        print("\n" + "="*50)
+
+    final_merger = {}
+    for directory, counters in word_counter_dictionary.items():
+        # Obtener los contadores de palabras para niños y adultos
+        children_counts = counters['children'].get_word_counts()
+        adults_counts = counters['adults'].get_word_counts()
+        
+        # Crear diccionarios para almacenar los resultados
+        children_merged = {}
+        adults_merged = {}
+        
+        # Procesar conteos de niños
+        for word, count in children_counts.items():
+            children_merged[word] = {'count': count}
+            if word in all_words:
+                children_merged[word].update(all_words[word])
+        
+        # Procesar conteos de adultos
+        for word, count in adults_counts.items():
+            adults_merged[word] = {'count': count}
+            if word in all_words:
+                adults_merged[word].update(all_words[word])
+        
+        # Almacenar los resultados en el diccionario final
+        final_merger[directory] = {
+            'children': children_merged,
+            'adults': adults_merged
+        }
+        
+        # Imprimir algunos resultados para verificación
+        print(f"\nResultados para el directorio {directory}:")
+        print("\nPalabras más comunes en niños:")
+        for word, data in sorted(children_merged.items(), key=lambda x: x[1]['count'], reverse=True)[:5]:
+            print(f"{word}: {data}")
+        
+        print("\nPalabras más comunes en adultos:")
+        for word, data in sorted(adults_merged.items(), key=lambda x: x[1]['count'], reverse=True)[:5]:
+            print(f"{word}: {data}")
+                
