@@ -1,45 +1,6 @@
 import os
 import pytest
-import re
-
-def extract_age(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-        # Buscar la línea que contiene la edad del niño
-        match = re.search(r'@ID:\s*eng\|NewEngland\|CHI\|(\d+;\d+\.\d+)\|', content)
-        if match:
-            age_str = match.group(1)
-            # Convertir el formato 1;06.26 a años, meses y días
-            years, rest = age_str.split(';')
-            months, days = rest.split('.')
-            return f"{years} years {months} months {days} days"
-    return None
-
-def modify_cha_file(file_path, child_name, age):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-    
-    # Buscar la posición después de la línea @Languages
-    languages_pos = content.find('@Languages:')
-    if languages_pos == -1:
-        return
-    
-    # Encontrar el final de la línea @Languages
-    next_line_pos = content.find('\n', languages_pos)
-    if next_line_pos == -1:
-        return
-    
-    # Insertar los metadatos después de la línea @Languages
-    new_content = (
-        content[:next_line_pos + 1] +
-        f'@ChildName: {child_name}\n' +
-        f'@Child_Age: {age}\n' +
-        content[next_line_pos + 1:]
-    )
-    
-    # Escribir el contenido modificado
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(new_content)
+from src.reorganize_newengland import extract_age, modify_cha_file, process_directory
 
 def test_extract_age():
     # Caso 1: Edad válida
@@ -128,4 +89,62 @@ def test_modify_cha_file_without_languages():
     assert content == test_content
     
     # Limpieza
-    os.remove(test_file) 
+    os.remove(test_file)
+
+def test_process_directory():
+    # Crear estructura de directorios de prueba
+    source_dir = "test_source"
+    target_dir = "test_target"
+    subdir = "test_subdir"
+    source_subdir = os.path.join(source_dir, subdir)
+    
+    try:
+        # Crear directorios
+        os.makedirs(source_subdir, exist_ok=True)
+        
+        # Crear archivo .cha de prueba
+        test_file = os.path.join(source_subdir, "test.cha")
+        test_content = """@UTF8
+@PID: test
+@Begin
+@Languages: eng
+@Participants: INV Investigator, CHI Target_Child
+@ID: eng|NewEngland|CHI|1;06.26|male|TD||Target_Child|||
+"""
+        with open(test_file, 'w', encoding='utf-8') as f:
+            f.write(test_content)
+        
+        # Procesar directorio
+        process_directory(source_dir, target_dir)
+        
+        # Verificar que se creó el directorio de destino
+        assert os.path.exists(target_dir)
+        
+        # Verificar que se creó el archivo modificado
+        target_file = os.path.join(target_dir, "Targettest", f"{subdir}.cha")
+        assert os.path.exists(target_file)
+        
+        # Verificar el contenido del archivo modificado
+        with open(target_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        assert "@ChildName: Targettest" in content
+        assert "@Child_Age: 1 years 06 months 26 days" in content
+        
+    finally:
+        # Limpieza
+        if os.path.exists(target_dir):
+            for root, dirs, files in os.walk(target_dir, topdown=False):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+                for dir in dirs:
+                    os.rmdir(os.path.join(root, dir))
+            os.rmdir(target_dir)
+        
+        if os.path.exists(source_dir):
+            for root, dirs, files in os.walk(source_dir, topdown=False):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+                for dir in dirs:
+                    os.rmdir(os.path.join(root, dir))
+            os.rmdir(source_dir) 
