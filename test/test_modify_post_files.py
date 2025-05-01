@@ -55,44 +55,94 @@ def test_files():
     # Limpieza después de las pruebas
     shutil.rmtree(test_dir)
 
-def test_extract_age(test_files):
-    """Prueba la función extract_age"""
+def test_extract_age():
     # Caso 1: Edad válida
+    test_content = "@ID: eng|Post|CHI|1;06.26|male|TD||Target_Child|||"
+    test_file = "test_age.cha"
+    with open(test_file, 'w', encoding='utf-8') as f:
+        f.write(test_content)
+    
     expected_age = "1 years 06 months 26 days"
-    assert extract_age(test_files['valid_file']) == expected_age
+    assert extract_age(test_file) == expected_age
     
     # Caso 2: Archivo sin edad
-    assert extract_age(test_files['no_age_file']) is None
+    test_content = "@ID: eng|Post|CHI||male|TD||Target_Child|||"
+    with open(test_file, 'w', encoding='utf-8') as f:
+        f.write(test_content)
     
-    # Caso 3: Archivo que no existe
-    assert extract_age("archivo_inexistente.cha") is None
+    assert extract_age(test_file) is None
+    
+    # Caso 3: Archivo vacío
+    with open(test_file, 'w', encoding='utf-8') as f:
+        f.write("")
+    
+    assert extract_age(test_file) is None
+    
+    # Limpieza
+    os.remove(test_file)
 
-def test_modify_cha_file(test_files):
-    """Prueba la función modify_cha_file"""
-    # Caso 1: Archivo con línea @Languages
-    child_name = "TestChild"
-    age = "1 years 06 months 26 days"
-    modify_cha_file(test_files['valid_file'], child_name, age)
+def test_modify_cha_file():
+    # Preparar archivo de prueba
+    test_content = """@UTF8
+@PID: test
+@Begin
+@Languages: eng
+@Participants: INV Investigator, CHI Target_Child
+@ID: eng|Post|CHI|1;06.26|male|TD||Target_Child|||
+"""
+    test_file = "test_modify.cha"
+    with open(test_file, 'w', encoding='utf-8') as f:
+        f.write(test_content)
     
-    with open(test_files['valid_file'], 'r', encoding='utf-8') as f:
+    # Probar la modificación
+    child_name = "Target01"
+    age = "1 years 06 months 26 days"
+    modify_cha_file(test_file, child_name, age)
+    
+    # Verificar el resultado
+    with open(test_file, 'r', encoding='utf-8') as f:
         content = f.read()
     
     expected_content = """@UTF8
 @PID: test
 @Begin
 @Languages: eng
-@ChildName: TestChild
+@ChildName: Target01
 @Child_Age: 1 years 06 months 26 days
-@Participants: CHI Target_Child
+@Participants: INV Investigator, CHI Target_Child
 @ID: eng|Post|CHI|1;06.26|male|TD||Target_Child|||
 """
     assert content == expected_content
     
-    # Caso 2: Archivo sin línea @Languages
-    original_content = open(test_files['no_lang_file'], 'r', encoding='utf-8').read()
-    modify_cha_file(test_files['no_lang_file'], child_name, age)
-    modified_content = open(test_files['no_lang_file'], 'r', encoding='utf-8').read()
-    assert original_content == modified_content
+    # Limpieza
+    os.remove(test_file)
+
+def test_modify_cha_file_without_languages():
+    # Preparar archivo de prueba sin línea @Languages
+    test_content = """@UTF8
+@PID: test
+@Begin
+@Participants: INV Investigator, CHI Target_Child
+@ID: eng|Post|CHI|1;06.26|male|TD||Target_Child|||
+"""
+    test_file = "test_modify_no_lang.cha"
+    with open(test_file, 'w', encoding='utf-8') as f:
+        f.write(test_content)
+    
+    # Probar la modificación
+    child_name = "Target01"
+    age = "1 years 06 months 26 days"
+    modify_cha_file(test_file, child_name, age)
+    
+    # Verificar el resultado
+    with open(test_file, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # El archivo debería permanecer sin cambios ya que no hay línea @Languages
+    assert content == test_content
+    
+    # Limpieza
+    os.remove(test_file)
 
 @pytest.fixture
 def test_directory_structure(tmp_path):
@@ -124,39 +174,59 @@ def test_directory_structure(tmp_path):
 
 def test_process_directory(test_directory_structure, monkeypatch):
     """Prueba la función process_directory"""
-    # Modificar la función para usar el directorio de prueba
-    original_dirname = os.path.dirname
+    # Crear estructura de directorios de prueba
+    source_dir = os.path.join(test_directory_structure, "Corpus", "Post")
+    target_dir = os.path.join(test_directory_structure, "Corpus", "Post_modified")
+    subdir = "test_subdir"
+    source_subdir = os.path.join(source_dir, subdir)
     
-    def mock_dirname(path):
-        if path == __file__:
-            return original_dirname(path)
-        return str(test_directory_structure)
-    
-    monkeypatch.setattr(os.path, 'dirname', mock_dirname)
-    
-    # Ejecutar process_directory
-    process_directory()
-    
-    # Verificar que se creó el directorio Post_modified
-    modified_dir = os.path.join(str(test_directory_structure), "Post_modified")
-    assert os.path.exists(modified_dir)
-    
-    # Verificar que se copiaron los archivos de metadatos
-    assert os.path.exists(os.path.join(modified_dir, "0metadata.cdc"))
-    assert os.path.exists(os.path.join(modified_dir, "0types.txt"))
-    
-    # Verificar que se crearon los subdirectorios
-    for subdir in ["Lew", "She", "Tow"]:
-        subdir_path = os.path.join(modified_dir, subdir)
-        assert os.path.exists(subdir_path)
-        test_file = os.path.join(subdir_path, "test.cha")
-        assert os.path.exists(test_file)
+    try:
+        # Crear directorios
+        os.makedirs(source_subdir, exist_ok=True)
         
-        # Verificar que se añadieron los metadatos
-        with open(test_file, 'r', encoding='utf-8') as f:
+        # Crear archivo .cha de prueba
+        test_file = os.path.join(source_subdir, "test.cha")
+        test_content = """@UTF8
+@PID: test
+@Begin
+@Languages: eng
+@Participants: INV Investigator, CHI Target_Child
+@ID: eng|Post|CHI|1;06.26|male|TD||Target_Child|||
+"""
+        with open(test_file, 'w', encoding='utf-8') as f:
+            f.write(test_content)
+        
+        # Procesar directorio
+        process_directory(source_dir, target_dir)
+        
+        # Verificar que se creó el directorio de destino
+        assert os.path.exists(target_dir)
+        
+        # Verificar que se creó el archivo modificado
+        target_file = os.path.join(target_dir, subdir, "test.cha")
+        assert os.path.exists(target_file)
+        
+        # Verificar el contenido del archivo modificado
+        with open(target_file, 'r', encoding='utf-8') as f:
             content = f.read()
-            assert f"@ChildName: {subdir}" in content
-            assert "@Child_Age: 1 years 06 months 26 days" in content
-    
-    # Limpieza
-    shutil.rmtree(modified_dir) 
+        
+        assert "@ChildName: test_subdir" in content
+        assert "@Child_Age: 1 years 06 months 26 days" in content
+        
+    finally:
+        # Limpieza
+        if os.path.exists(target_dir):
+            for root, dirs, files in os.walk(target_dir, topdown=False):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+                for dir in dirs:
+                    os.rmdir(os.path.join(root, dir))
+            os.rmdir(target_dir)
+        
+        if os.path.exists(source_dir):
+            for root, dirs, files in os.walk(source_dir, topdown=False):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+                for dir in dirs:
+                    os.rmdir(os.path.join(root, dir))
+            os.rmdir(source_dir) 

@@ -16,8 +16,14 @@ def main():
         project_root = Path(__file__).parent.parent
         
         # Construir las rutas absolutas
-        brent_dir = project_root / "Brent"
-        brent_modified_dir = project_root / "Brent_modified"
+        brent_dir = project_root / "Corpus" / "Brent"
+        corpus_modified_dir = project_root / "Corpus_modified"
+        
+        # Crear el directorio Corpus_modified si no existe
+        if not corpus_modified_dir.exists():
+            corpus_modified_dir.mkdir()
+        
+        brent_modified_dir = corpus_modified_dir / "Brent"
         
         # Crear el manipulador y procesar el directorio
         manipulator = BrentManipulator(str(brent_dir), str(brent_modified_dir))

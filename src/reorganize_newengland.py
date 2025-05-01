@@ -1,6 +1,7 @@
 import os
 import shutil
 import re
+from pathlib import Path
 
 def extract_age(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -76,12 +77,21 @@ def process_directory(source_dir, target_dir):
 
 def main():
     """Función principal que ejecuta el proceso de reorganización."""
+    # Obtener la ruta del directorio raíz del proyecto
+    project_root = Path(__file__).parent.parent
+    
     # Directorios de origen y destino
-    source_dir = '../NewEngland'
-    target_dir = '../NewEngland_modified'
+    source_dir = project_root / "Corpus" / "NewEngland"
+    corpus_modified_dir = project_root / "Corpus_modified"
+    
+    # Crear el directorio Corpus_modified si no existe
+    if not corpus_modified_dir.exists():
+        corpus_modified_dir.mkdir()
+    
+    target_dir = corpus_modified_dir / "NewEngland"
     
     try:
-        process_directory(source_dir, target_dir)
+        process_directory(str(source_dir), str(target_dir))
         print('Reorganización completada')
     except Exception as e:
         print(f'Error durante la reorganización: {str(e)}')
