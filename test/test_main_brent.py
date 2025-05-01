@@ -30,10 +30,12 @@ class TestMainBrent:
         
         # Ejecutar main
         with patch('builtins.print') as mock_print:
-            main()
-            
-        # Verificar el mensaje de error
-        mock_print.assert_called_with("Error durante el procesamiento: El directorio no existe")
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+        
+        # Verificar el mensaje de error y el código de salida
+        assert exc_info.value.code == 1
+        mock_print.assert_called_with("Error: El directorio no existe - El directorio no existe")
         
     @patch('src.main_brent.BrentManipulator')
     def test_permission_error(self, mock_manipulator):
@@ -45,10 +47,12 @@ class TestMainBrent:
         
         # Ejecutar main
         with patch('builtins.print') as mock_print:
-            main()
-            
-        # Verificar el mensaje de error
-        mock_print.assert_called_with("Error durante el procesamiento: Permiso denegado")
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+        
+        # Verificar el mensaje de error y el código de salida
+        assert exc_info.value.code == 1
+        mock_print.assert_called_with("Error: Permiso denegado - Permiso denegado")
         
     @patch('src.main_brent.BrentManipulator')
     def test_file_processing_error(self, mock_manipulator):
@@ -60,9 +64,11 @@ class TestMainBrent:
         
         # Ejecutar main
         with patch('builtins.print') as mock_print:
-            main()
-            
-        # Verificar el mensaje de error
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+        
+        # Verificar el mensaje de error y el código de salida
+        assert exc_info.value.code == 1
         mock_print.assert_called_with("Error durante el procesamiento: Error al procesar archivo")
         
     @patch('src.main_brent.BrentManipulator')
