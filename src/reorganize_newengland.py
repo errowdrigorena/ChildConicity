@@ -1,5 +1,36 @@
 import os
 import shutil
+import re
+
+def extract_age(file_path):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+        # Buscar la línea que contiene la edad del niño
+        match = re.search(r'@ID:\s*eng\|NewEngland\|CHI\|(\d+;\d+\.\d+)\|', content)
+        if match:
+            age_str = match.group(1)
+            # Convertir el formato 1;06.26 a años, meses y días
+            years, rest = age_str.split(';')
+            months, days = rest.split('.')
+            return f"{years} years {months} months {days} days"
+    return None
+
+def modify_cha_file(file_path, child_name, age):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Buscar la posición después de @Languages
+    languages_pos = content.find('@Languages:')
+    if languages_pos != -1:
+        # Encontrar el final de la línea @Languages
+        end_of_line = content.find('\n', languages_pos)
+        if end_of_line != -1:
+            # Insertar los metadatos después de @Languages
+            new_content = content[:end_of_line + 1] + f'@ChildName: {child_name}\n@Child_Age: {age}\n' + content[end_of_line + 1:]
+            
+            # Escribir el contenido modificado
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
 
 # Directorios de origen y destino
 source_dir = '../NewEngland'
@@ -38,6 +69,11 @@ for subdir in subdirs:
             target_file = os.path.join(target_folder_path, new_filename)
             shutil.copy2(source_file, target_file)
             
-            print(f'Copiado {source_file} a {target_file}')
+            # Extraer la edad y modificar el archivo .cha
+            age = extract_age(source_file)
+            if age:
+                modify_cha_file(target_file, target_folder, age)
+            
+            print(f'Copiado y modificado {source_file} a {target_file}')
 
 print('Reorganización completada') 
