@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 
+import os
 from brent_manipulator import BrentManipulator
 
 def main():
-    # Crear una instancia del manipulador
-    manipulator = BrentManipulator()
+    # Obtener el directorio raíz del proyecto
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    # Crear una instancia del manipulador con rutas relativas al directorio raíz
+    manipulator = BrentManipulator(
+        base_dir=os.path.join(project_root, "Brent"),
+        output_dir=os.path.join(project_root, "Brent_modified")
+    )
     
     try:
         # Procesar el directorio
