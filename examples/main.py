@@ -11,6 +11,7 @@ from src.brent_manipulator import BrentManipulator
 
 def main():
     manipulator = BrentManipulator()
+    manipulator.base_dir = "Corpus/Brent"  # Modificar la ruta base
     manipulator.process_directory()
 
 if __name__ == "__main__":
@@ -157,7 +158,7 @@ if __name__ == "__main__":
     print("\n" + "="*50 + "\n")
     print("Leyendo Brent:")
     reader = Reader()
-    brent_data = reader.read_directory('Brent')
+    brent_data = reader.read_directory('Corpus/Brent')
     
     def print_directory_structure(data, level=0):
         """
