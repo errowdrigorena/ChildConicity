@@ -170,6 +170,9 @@ class CorpusManipulator:
     
     def add_metadata_to_content(self, content, age, child_name):
         """Añade los metadatos al contenido del archivo"""
+        if content is None:
+            return ""
+        
         lines = content.split('\n')
         new_lines = []
         languages_found = False

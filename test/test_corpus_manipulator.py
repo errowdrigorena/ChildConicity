@@ -51,6 +51,84 @@ class TestCorpusManipulator(unittest.TestCase):
         if os.path.exists(self.test_output_dir):
             shutil.rmtree(self.test_output_dir)
     
+    def test_process_directory_without_base_dir(self):
+        """Prueba que process_directory lanza un error si base_dir no está configurado"""
+        self.manipulator.base_dir = None
+        with self.assertRaises(ValueError):
+            self.manipulator.process_directory()
+    
+    def test_process_file_with_error(self):
+        """Prueba el manejo de errores en process_file"""
+        # Intentar procesar un archivo que no existe
+        self.manipulator.process_file("archivo_inexistente.cha", "salida.cha")
+        # No debería lanzar excepción, solo imprimir un mensaje de error
+    
+    def test_extract_age_with_error(self):
+        """Prueba el manejo de errores en extract_age"""
+        # Intentar extraer la edad de un archivo que no existe
+        age = self.manipulator.extract_age("archivo_inexistente.cha")
+        self.assertIsNone(age)
+    
+    def test_modify_file_with_none_age(self):
+        """Prueba que modify_file no hace nada si age es None"""
+        self.manipulator.modify_file(self.test_file, "salida.cha", None)
+        self.assertFalse(os.path.exists("salida.cha"))
+    
+    def test_extract_child_name_from_participants(self):
+        """Prueba la extracción del nombre del niño desde @Participants"""
+        content = """@UTF8
+@Languages: eng
+@Participants: CHI Juan Target_Child, MOT Mother
+"""
+        name = self.manipulator.extract_child_name(content)
+        self.assertEqual(name, "Juan Target_Child")
+    
+    def test_extract_child_name_from_pid(self):
+        """Prueba la extracción del nombre del niño desde @PID"""
+        content = """@UTF8
+@Languages: eng
+@PID: Child: Maria, Mother: Ana
+"""
+        name = self.manipulator.extract_child_name(content)
+        self.assertEqual(name, "Maria")
+    
+    def test_extract_child_name_from_comment(self):
+        """Prueba la extracción del nombre del niño desde @Comment"""
+        content = """@UTF8
+@Languages: eng
+@Comment: name: Pedro, age: 2
+"""
+        name = self.manipulator.extract_child_name(content)
+        self.assertEqual(name, "Pedro")
+    
+    def test_extract_child_name_default(self):
+        """Prueba que se devuelve Target_Child si no se encuentra el nombre"""
+        content = """@UTF8
+@Languages: eng
+"""
+        name = self.manipulator.extract_child_name(content)
+        self.assertEqual(name, "Target_Child")
+    
+    def test_add_metadata_to_content_with_existing_metadata(self):
+        """Prueba la inserción de metadatos cuando ya existen"""
+        content = """@UTF8
+@Languages: eng
+@Age: 1;0
+@ChildName: Juan
+"""
+        modified = self.manipulator.add_metadata_to_content(content, "2;0", "Pedro")
+        self.assertIn("@Age: 2;0", modified)
+        self.assertIn("@ChildName: Pedro", modified)
+    
+    def test_add_metadata_to_content_without_languages(self):
+        """Prueba la inserción de metadatos cuando no hay @Languages"""
+        content = """@UTF8
+@Participants: CHI Juan Target_Child
+"""
+        modified = self.manipulator.add_metadata_to_content(content, "2;0", "Pedro")
+        self.assertNotIn("@Age:", modified)
+        self.assertNotIn("@ChildName:", modified)
+    
     def test_calculate_age_from_filename(self):
         """Prueba el cálculo de edad a partir del nombre del archivo"""
         # Probar formato AAMMDD
@@ -96,6 +174,36 @@ class TestCorpusManipulator(unittest.TestCase):
             
         self.assertIn("@Age: 2;0", content)
         self.assertIn("@ChildName: Lew", content)
+
+    def test_extract_child_name_with_error(self):
+        """Prueba el manejo de errores en extract_child_name"""
+        # Pasar un contenido inválido para forzar una excepción
+        name = self.manipulator.extract_child_name(None)
+        self.assertEqual(name, "Target_Child")
+
+    def test_add_metadata_to_content_with_error(self):
+        """Prueba el manejo de errores en add_metadata_to_content"""
+        # Pasar un contenido inválido para forzar una excepción
+        modified = self.manipulator.add_metadata_to_content(None, "2;0", "Pedro")
+        self.assertEqual(modified, "")
+
+    def test_process_file_with_output_dir_none(self):
+        """Prueba process_file cuando output_dir es None"""
+        self.manipulator.output_dir = None
+        self.manipulator.process_file(self.test_file, "salida.cha")
+        self.assertTrue(os.path.exists("salida.cha"))
+        os.remove("salida.cha")
+
+    def test_extract_age_from_content(self):
+        """Prueba la extracción de edad desde el contenido"""
+        content = """@UTF8
+@Languages: eng
+*CHI: 2;0 hola mama.
+"""
+        with open(self.test_file, 'w', encoding='utf-8') as f:
+            f.write(content)
+        age = self.manipulator.extract_age(self.test_file)
+        self.assertEqual(age, "2;0")
 
 if __name__ == '__main__':
     unittest.main() 
