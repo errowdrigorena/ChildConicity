@@ -49,7 +49,7 @@ class TestModifyVanKleeckFiles(unittest.TestCase):
             content = f.read()
             self.assertIn('@Languages:\teng', content)
             self.assertIn('@ChildName: test', content)
-            self.assertIn('@Child_Age: 3 years 09 months 0 days', content)
+            self.assertIn('@ChildAge: 3 years 09 months 0 days', content)
             self.assertIn('@Participants:\tCHI Test Target_Child', content)
 
     def test_process_directory(self):
@@ -79,7 +79,7 @@ class TestModifyVanKleeckFiles(unittest.TestCase):
             content = f.read()
             self.assertIn('@Languages:\teng', content)
             self.assertIn('@ChildName: amy', content)
-            self.assertIn('@Child_Age: 3 years 09 months 0 days', content)
+            self.assertIn('@ChildAge: 3 years 09 months 0 days', content)
             self.assertIn('@Participants:\tCHI Amy Target_Child', content)
 
     def test_process_directory_with_invalid_files(self):

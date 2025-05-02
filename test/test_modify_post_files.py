@@ -108,7 +108,7 @@ def test_modify_cha_file():
 @Begin
 @Languages: eng
 @ChildName: Target01
-@Child_Age: 1 years 06 months 26 days
+@ChildAge: 1 years 06 months 26 days
 @Participants: INV Investigator, CHI Target_Child
 @ID: eng|Post|CHI|1;06.26|male|TD||Target_Child|||
 """
@@ -211,7 +211,7 @@ def test_process_directory(test_directory_structure, monkeypatch):
             content = f.read()
         
         assert "@ChildName: test_subdir" in content
-        assert "@Child_Age: 1 years 06 months 26 days" in content
+        assert "@ChildAge: 1 years 06 months 26 days" in content
         
     finally:
         # Limpieza

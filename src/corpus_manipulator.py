@@ -61,7 +61,18 @@ class CorpusManipulator:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                
+            
+            # Caso especial para Brent: extraer la edad del nombre del archivo
+            if 'Brent' in file_path:
+                file_name = os.path.basename(file_path)
+                if file_name.endswith('.cha'):
+                    file_name = file_name[:-4]  # Quitar la extensión .cha
+                    if len(file_name) >= 6:  # Asegurarse de que tiene al menos 6 dígitos
+                        years = int(file_name[0:2])
+                        months = int(file_name[2:4])
+                        days = int(file_name[4:6])
+                        return f"{years};{months}"
+            
             # Buscar la edad en el PID
             pid_pattern = r'@PID:.*?\|(\d+);(\d+)\|'
             match = re.search(pid_pattern, content)

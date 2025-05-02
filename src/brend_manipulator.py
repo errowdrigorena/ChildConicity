@@ -68,11 +68,36 @@ class BrendManipulator:
             
             # Caso especial para Brent: extraer la edad del nombre del archivo
             if file_path and 'Brent' in file_path:
-                # El nombre del archivo tiene el formato YYMMDD.cha
+                # El nombre del archivo tiene el formato YYMMDD.cha o m1-[r|f]DDmmmYY.cha
                 file_name = os.path.basename(file_path)
                 if file_name.endswith('.cha'):
                     file_name = file_name[:-4]  # Quitar la extensión .cha
-                    if len(file_name) >= 6:  # Asegurarse de que tiene al menos 6 dígitos
+                    
+                    # Caso especial para archivos m1
+                    if file_name.startswith('m1-'):
+                        # Formato: m1-[r|f]DDmmmYY
+                        # Ejemplo: m1-r27jul00
+                        match = re.match(r'm1-[rf](\d{2})([a-z]{3})(\d{2})', file_name)
+                        if match:
+                            day = int(match.group(1))
+                            month_str = match.group(2).lower()
+                            year = int(match.group(3))
+                            
+                            # Convertir el mes de texto a número
+                            month_map = {
+                                'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4,
+                                'may': 5, 'jun': 6, 'jul': 7, 'aug': 8,
+                                'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12
+                            }
+                            month = month_map.get(month_str, 0)
+                            
+                            # Ajustar el año (00 -> 2000)
+                            year = 2000 + year if year < 100 else year
+                            
+                            return f"0 years {month:02d} months {day:02d} days"
+                    
+                    # Caso normal: YYMMDD.cha
+                    elif len(file_name) >= 6:  # Asegurarse de que tiene al menos 6 dígitos
                         years = int(file_name[0:2])
                         months = int(file_name[2:4])
                         days = int(file_name[4:6])

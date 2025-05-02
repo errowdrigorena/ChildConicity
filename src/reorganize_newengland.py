@@ -27,7 +27,7 @@ def modify_cha_file(file_path, child_name, age):
         end_of_line = content.find('\n', languages_pos)
         if end_of_line != -1:
             # Insertar los metadatos después de @Languages
-            new_content = content[:end_of_line + 1] + f'@ChildName: {child_name}\n@Child_Age: {age}\n' + content[end_of_line + 1:]
+            new_content = content[:end_of_line + 1] + f'@ChildName: {child_name}\n@ChildAge: {age}\n' + content[end_of_line + 1:]
             
             # Escribir el contenido modificado
             with open(file_path, 'w', encoding='utf-8') as f:

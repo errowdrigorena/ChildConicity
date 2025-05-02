@@ -50,7 +50,7 @@ def test_modify_cha_file():
     with open(test_file, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    assert "@Child_Age: 1 years 06 months 26 days" in content
+    assert "@ChildAge: 1 years 06 months 26 days" in content
     assert "@ChildName: Target01" in content
     
     # Limpieza
@@ -120,7 +120,7 @@ def test_process_directory():
         with open(target_file, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        assert "@Child_Age: 1 years 06 months 26 days" in content
+        assert "@ChildAge: 1 years 06 months 26 days" in content
         assert "@ChildName: Target01" in content
         
     finally:

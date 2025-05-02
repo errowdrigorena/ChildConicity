@@ -118,7 +118,7 @@ class Reader:
 
     def _extract_child_age(self, content):
         """Extrae la edad del niño del archivo."""
-        match = re.search(r'@Child_Age:\s*(.*)', content)
+        match = re.search(r'@ChildAge:\s*(.*)', content)
         return match.group(1).strip() if match else None
 
     def _extract_child_name(self, content):
@@ -172,7 +172,8 @@ class Reader:
         """
         Lee recursivamente todos los archivos .cha en un directorio y sus subdirectorios.
         Crea un diccionario anidado que refleja la estructura de directorios.
-        
+
+
         Args:
             directory_path (str): Ruta al directorio a leer
             
