@@ -51,6 +51,8 @@ class Reader:
                 'options': self._extract_options(content),
                 'media': self._extract_media(content),
                 'date': self._extract_date(content),
+                'child_age': self._extract_child_age(content),
+                'child_name': self._extract_child_name(content),
                 'types': self._extract_types(content),
                 'utterances': self._extract_utterances(content)
             }
@@ -113,6 +115,25 @@ class Reader:
         """Extrae la fecha del archivo."""
         match = re.search(r'@Date:\s*(.*)', content)
         return match.group(1).strip() if match else None
+
+    def _extract_child_age(self, content):
+        """Extrae la edad del niño del archivo."""
+        match = re.search(r'@Child_Age:\s*(.*)', content)
+        return match.group(1).strip() if match else None
+
+    def _extract_child_name(self, content):
+        """Extrae el nombre del niño del archivo."""
+        # Primero buscamos en @ChildName
+        match = re.search(r'@ChildName:\s*(.*)', content)
+        if match:
+            return match.group(1).strip()
+        
+        # Si no lo encontramos, buscamos en los participantes
+        participants = self._extract_participants(content)
+        for code, name in participants.items():
+            if 'CHI' in code:
+                return name.split()[0]  # Tomamos solo el primer nombre
+        return None
 
     def _extract_types(self, content):
         """Extrae los tipos del archivo."""

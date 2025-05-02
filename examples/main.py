@@ -7,12 +7,121 @@ from src.data_formatter import DataFormatter
 from src.word_counter import WordCounter
 from src.iconicity_model import IconicityModel
 from src.word_dictionary_merger import WordDictionaryMerger
-from src.brent_manipulator import BrentManipulator
+from src.corpus_manipulator import CorpusManipulator
+
+def process_corpus(corpus_name, base_dir):
+    """Procesa un corpus específico y muestra sus resultados"""
+    print(f"\n{'='*50}\nProcesando corpus: {corpus_name}\n{'='*50}")
+    
+    # Crear el manipulador genérico para el corpus
+    manipulator = CorpusManipulator()
+    manipulator.base_dir = base_dir
+    manipulator.process_directory()
+    
+    # Leer el directorio
+    reader = Reader()
+    corpus_data = reader.read_directory(base_dir)
+    
+    # Procesar todos los archivos .cha
+    formatter = DataFormatter()
+    corpus_processed_data = process_cha_files(corpus_data)
+    
+    # Crear diccionario por directorio
+    directory_data = {}
+    for directory, files in corpus_processed_data.items():
+        dir_name = directory.split('/')[-1]
+        children_merger = WordDictionaryMerger()
+        adults_merger = WordDictionaryMerger()
+        
+        for filename, data in files.items():
+            if data['children_data']:
+                children_merger.add_dictionary(data['children_data'])
+            if data['adults_data']:
+                adults_merger.add_dictionary(data['adults_data'])
+        
+        merged_children, _ = children_merger.obtain_merge()
+        merged_adults, _ = adults_merger.obtain_merge()
+        
+        directory_data[dir_name] = {
+            'children_data': merged_children,
+            'adults_data': merged_adults
+        }
+    
+    # Mostrar resultados
+    print(f"\nResultados para {corpus_name}:")
+    for directory, data in directory_data.items():
+        print(f"\nDirectorio: {directory}")
+        print(f"  Número de expresiones de niños: {len(data['children_data'])}")
+        print(f"  Número de expresiones de adultos: {len(data['adults_data'])}")
+        
+        # Mostrar ejemplos
+        print("\n  Ejemplos de expresiones de niños:")
+        for i, (key, value) in enumerate(list(data['children_data'].items())[:3]):
+            print(f"    {key}:")
+            print(f"      Hablante: {value['speaker']}")
+            print(f"      Texto: {value['text']}")
+            if value['timestamp']:
+                print(f"      Tiempo: {value['timestamp']['start']}-{value['timestamp']['end']}")
+        
+        print("\n  Ejemplos de expresiones de adultos:")
+        for i, (key, value) in enumerate(list(data['adults_data'].items())[:3]):
+            print(f"    {key}:")
+            print(f"      Hablante: {value['speaker']}")
+            print(f"      Texto: {value['text']}")
+            if value['timestamp']:
+                print(f"      Tiempo: {value['timestamp']['start']}-{value['timestamp']['end']}")
+
+def process_cha_files(data, current_path=""):
+    """Procesa recursivamente todos los archivos .cha en la estructura de directorios"""
+    result_dict = {}
+    
+    for dir_name, content in data.items():
+        new_path = f"{current_path}/{dir_name}" if current_path else dir_name
+        
+        if 'files' in content:
+            for file in content['files']:
+                if file['metadata']['file_path'].endswith('.cha'):
+                    file_path = file['metadata']['file_path']
+                    print(f"Procesando archivo: {file_path}")
+                    file_formatter = DataFormatter()
+                    children_data, adults_data = file_formatter.format_cha_data_from(file_path)
+                    
+                    if new_path not in result_dict:
+                        result_dict[new_path] = {}
+                    
+                    filename = file_path.split('/')[-1]
+                    result_dict[new_path][filename] = {
+                        'children_data': children_data,
+                        'adults_data': adults_data
+                    }
+        
+        for key, value in content.items():
+            if key != 'files':
+                subdir_results = process_cha_files({key: value}, new_path)
+                result_dict.update(subdir_results)
+    
+    return result_dict
 
 def main():
-    manipulator = BrentManipulator()
-    manipulator.base_dir = "Corpus/Brent"  # Modificar la ruta base
-    manipulator.process_directory()
+    # Procesar el archivo CSV primero para tener los datos de iconicidad
+    print("Procesando archivo CSV:")
+    formatter = DataFormatter()
+    csv_data = formatter.format_csv_data_from('iconicity_ratings_cleaned.csv')
+    
+    # Crear el modelo de iconicidad
+    iconicity_model = IconicityModel(csv_data)
+    all_words = iconicity_model.get_all_word_data()
+    
+    # Procesar cada corpus
+    corpora = {
+        'Brent': 'Corpus_modified/Brent',
+        'VanKleeck': 'Corpus_modified/VanKleeck',
+        'Post': 'Corpus_modified/Post',
+        'NewEngland': 'Corpus_modified/NewEngland'
+    }
+    
+    for corpus_name, corpus_path in corpora.items():
+        process_corpus(corpus_name, corpus_path)
 
 if __name__ == "__main__":
     main()
@@ -158,7 +267,7 @@ if __name__ == "__main__":
     print("\n" + "="*50 + "\n")
     print("Leyendo Brent:")
     reader = Reader()
-    brent_data = reader.read_directory('Corpus/Brent')
+    corpus_data = reader.read_directory('Corpus')
     
     def print_directory_structure(data, level=0):
         """
@@ -184,7 +293,7 @@ if __name__ == "__main__":
     
     # Mostrar la estructura del directorio
     print("\nEstructura de Brent:")
-    print_directory_structure(brent_data)
+    print_directory_structure(corpus_data)
 
     # Mostrar el contenido de un archivo específico
     print("\n" + "="*50 + "\n")
@@ -192,7 +301,7 @@ if __name__ == "__main__":
     
     # Obtener el contenido del primer archivo que encontremos
     first_file = None
-    for dir_name, content in brent_data['Brent'].items():
+    for dir_name, content in corpus_data['Brent'].items():
         if 'files' in content and content['files']:
             first_file = content['files'][0]
             print(f"Archivo: {first_file['metadata']['file_path']}")
@@ -225,9 +334,9 @@ if __name__ == "__main__":
             if entry['timestamp']:
                 print(f"  Tiempo: {entry['timestamp']['start']}-{entry['timestamp']['end']}")
 
-    # Procesar todos los archivos .cha en Brent_data
+    # Procesar todos los archivos .cha en corpus_data
     print("\n" + "="*50 + "\n")
-    print("Procesando archivos .cha en Brent_data:")
+    print("Procesando archivos .cha en corpus_data:")
     
     def process_cha_files(data, current_path=""):
         """
@@ -271,7 +380,7 @@ if __name__ == "__main__":
         return result_dict
     
     # Procesar todos los archivos .cha y obtener el diccionario resultante
-    brent_processed_data = process_cha_files(brent_data)
+    brent_processed_data = process_cha_files(corpus_data)
     
     # Crear un diccionario por directorio con los datos fusionados
     directory_data = {}
@@ -388,4 +497,7 @@ if __name__ == "__main__":
         print("\nPalabras más comunes en adultos:")
         for word, data in sorted(adults_merged.items(), key=lambda x: x[1]['count'], reverse=True)[:5]:
             print(f"{word}: {data}")
-                
+    
+    for directory, data in final_merger.items():
+        print(f"\nContiene el directorio {directory}:")
+            
