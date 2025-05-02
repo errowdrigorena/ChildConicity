@@ -32,7 +32,6 @@ def main():
     
     # Mostrar los primeros 4 metadatos de cada archivo
     print("\nPrimeros 4 metadatos de cada archivo:")
-    # print_metadata(corpus_data)
     print_sampled_metadata(corpus_data)
 
 def print_directory_structure(data, level=0):
