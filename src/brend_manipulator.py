@@ -80,6 +80,7 @@ class BrendManipulator:
             if match:
                 years = int(match.group(1))
                 months = int(match.group(2))
+                return f"{years} years, {months} months, {days} days"
             
             # Buscar la edad en el formato @ID: eng|VanKleeck|CHI|3;09.|male|TD||Target_Child|||
             id_pattern = r'@ID:.*?CHI\|(\d+);(\d+)\.'
@@ -87,6 +88,7 @@ class BrendManipulator:
             if match:
                 years = int(match.group(1))
                 months = int(match.group(2))
+                return f"{years} years, {months} months, {days} days"
             
             # Si no se encuentra en el PID, buscar en el contenido
             age_pattern = r'\*CHI:\s*.*?(\d+)[;:]'
@@ -94,9 +96,10 @@ class BrendManipulator:
             if match:
                 years = int(match.group(1))
                 months = 0
+                return f"{years} years, {months} months, {days} days"
             
-            # Formatear la edad como string
-            return f"{years} years, {months} months, {days} days"
+            # Si no se encuentra la edad, devolver valor por defecto
+            return "0 years, 0 months, 0 days"
             
         except Exception as e:
             print(f"Error al extraer la edad: {str(e)}")

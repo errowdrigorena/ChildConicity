@@ -3,7 +3,9 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.brend_manipulator import BrendManipulator
-from src.reorganize_newengland import process_directory
+from src.reorganize_newengland import process_directory as process_newengland
+from src.modify_post_files import process_directory as process_post
+from src.modify_vankleeck_files import process_directory as process_vankleeck
 
 def initialize_brent_corpus():
     """Inicializa el corpus de Brent"""
@@ -27,11 +29,11 @@ def initialize_new_england_corpus():
     print("\nInicializando corpus de NewEngland...")
     
     # Configurar rutas
-    input_dir = "Corpus"
-    output_dir = "Corpus_modified"
+    input_dir = os.path.join("Corpus", "NewEngland")
+    output_dir = os.path.join("Corpus_modified", "NewEngland")
     
     # Procesar el directorio usando la función process_directory
-    process_directory(input_dir, output_dir)
+    process_newengland(input_dir, output_dir)
     print("¡Corpus de NewEngland inicializado!")
 
 def initialize_post_corpus():
@@ -39,16 +41,11 @@ def initialize_post_corpus():
     print("\nInicializando corpus de Post...")
     
     # Configurar rutas
-    base_dir = os.path.join("Corpus", "Post")
+    input_dir = os.path.join("Corpus", "Post")
     output_dir = os.path.join("Corpus_modified", "Post")
     
-    # Crear el manipulador
-    manipulator = BrendManipulator()
-    manipulator.base_dir = base_dir
-    manipulator.output_dir = output_dir
-    
-    # Procesar el directorio
-    manipulator.process_directory()
+    # Procesar el directorio usando la función process_directory de modify_post_files
+    process_post(input_dir, output_dir)
     print("¡Corpus de Post inicializado!")
 
 def initialize_van_kleeck_corpus():
@@ -56,16 +53,11 @@ def initialize_van_kleeck_corpus():
     print("\nInicializando corpus de VanKleeck...")
     
     # Configurar rutas
-    base_dir = os.path.join("Corpus", "VanKleeck")
+    input_dir = os.path.join("Corpus", "VanKleeck")
     output_dir = os.path.join("Corpus_modified", "VanKleeck")
     
-    # Crear el manipulador
-    manipulator = BrendManipulator()
-    manipulator.base_dir = base_dir
-    manipulator.output_dir = output_dir
-    
-    # Procesar el directorio
-    manipulator.process_directory()
+    # Procesar el directorio usando la función process_directory de modify_vankleeck_files
+    process_vankleeck(input_dir, output_dir)
     print("¡Corpus de VanKleeck inicializado!")
 
 def main():
@@ -75,8 +67,8 @@ def main():
     # Inicializar cada corpus
     initialize_brent_corpus()
     initialize_new_england_corpus()
-    # initialize_post_corpus()
-    # initialize_van_kleeck_corpus()
+    initialize_post_corpus()
+    initialize_van_kleeck_corpus()
     
     print("\n¡Inicialización de corpus completada!")
 
