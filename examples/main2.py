@@ -2,30 +2,29 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.reader import Reader
-from src.data_formatter import DataFormatter
-from src.word_counter import WordCounter
-from src.iconicity_model import IconicityModel
-from src.word_dictionary_merger import WordDictionaryMerger
+from examples.initialize_corpuses import main as initialize_corpuses
 from src.corpus_manipulator import CorpusManipulator
+from src.data_formatter import DataFormatter
+from src.iconicity_model import IconicityModel
+from src.reader import Reader
+from src.word_counter import WordCounter
+from src.word_dictionary_merger import WordDictionaryMerger
 
 def main():
-    # Definir directorios de entrada y salida
-    input_dir = 'Corpus'
-    output_dir = 'Corpus_processed'
+    """Función principal del programa"""
+    # Inicializar los corpus
+    print("Inicializando corpus...")
+    initialize_corpuses()
+    print("Corpus inicializados correctamente.")
     
-    # Procesar los archivos con el CorpusManipulator
-    print("\nProcesando archivos con CorpusManipulator...")
-    manipulator = CorpusManipulator()
-    manipulator.base_dir = input_dir
-    manipulator.output_dir = output_dir
-    manipulator.process_directory()
+    # Definir directorios de entrada y salida
+    input_dir = 'Corpus_modified'
     
     # Crear instancia del Reader
     reader = Reader()
     
     # Leer todos los directorios dentro del directorio procesado
-    corpus_data = reader.read_directory(output_dir)
+    corpus_data = reader.read_directory(input_dir)
     
     # Mostrar la estructura del diccionario anidado
     print("\nEstructura del corpus:")

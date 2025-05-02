@@ -67,7 +67,7 @@ class TestBrendManipulator(unittest.TestCase):
         """Prueba el manejo de errores en extract_age"""
         # Intentar extraer la edad de un archivo que no existe
         age = self.manipulator.extract_age("archivo_inexistente.cha")
-        self.assertEqual(age, "0 years, 0 months, 0 days")
+        self.assertEqual(age, "0 years 00 months 00 days")
     
     def test_extract_child_name_from_brend_path(self):
         """Prueba la extracción del nombre del niño desde la ruta del archivo de Brend"""
@@ -132,7 +132,7 @@ class TestBrendManipulator(unittest.TestCase):
     def test_extract_age_from_pid(self):
         """Prueba la extracción de edad desde el PID"""
         age = self.manipulator.extract_age(self.test_file)
-        self.assertEqual(age, "0 years, 0 months, 0 days")
+        self.assertEqual(age, "2 years 00 months 00 days")
     
     def test_extract_age_from_id(self):
         """Prueba la extracción de edad desde @ID"""
@@ -144,7 +144,7 @@ class TestBrendManipulator(unittest.TestCase):
         with open(test_file, 'w', encoding='utf-8') as f:
             f.write(test_content)
         age = self.manipulator.extract_age(test_file)
-        self.assertEqual(age, "0 years, 0 months, 0 days")
+        self.assertEqual(age, "3 years 09 months 00 days")
     
     def test_extract_age_from_content(self):
         """Prueba la extracción de edad desde el contenido"""
@@ -156,7 +156,7 @@ class TestBrendManipulator(unittest.TestCase):
         with open(test_file, 'w', encoding='utf-8') as f:
             f.write(test_content)
         age = self.manipulator.extract_age(test_file)
-        self.assertEqual(age, "0 years, 0 months, 0 days")
+        self.assertEqual(age, "2 years 00 months 00 days")
     
     def test_process_directory(self):
         """Prueba el procesamiento completo del directorio"""
@@ -169,7 +169,7 @@ class TestBrendManipulator(unittest.TestCase):
         with open(output_file, 'r', encoding='utf-8') as f:
             content = f.read()
             
-        self.assertIn("@ChildAge: 2 years, 0 months, 0 days", content)
+        self.assertIn("@ChildAge: 2 years 00 months 00 days", content)
         self.assertIn("@ChildName: c1", content)
     
     def test_extract_child_name_with_error(self):

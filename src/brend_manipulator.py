@@ -55,11 +55,16 @@ class BrendManipulator:
             print(f"Error al procesar el archivo {input_path}: {str(e)}")
     
     def extract_age(self, content, file_path=None):
-        """Extrae la edad del contenido del archivo y la formatea como 'XX years, YY months, ZZ days'"""
+        """Extrae la edad del contenido del archivo y la formatea como 'X years YY months ZZ days'"""
         try:
             years = 0
             months = 0
             days = 0
+            
+            # Si el contenido es una ruta de archivo, leer el archivo
+            if os.path.isfile(content):
+                with open(content, 'r', encoding='utf-8') as f:
+                    content = f.read()
             
             # Caso especial para Brent: extraer la edad del nombre del archivo
             if file_path and 'Brent' in file_path:
@@ -71,7 +76,7 @@ class BrendManipulator:
                         years = int(file_name[0:2])
                         months = int(file_name[2:4])
                         days = int(file_name[4:6])
-                        return f"{years} years, {months} months, {days} days"
+                        return f"{years} years {months:02d} months {days:02d} days"
             
             # Para otros casos, buscar en el contenido
             # Buscar la edad en el PID
@@ -80,7 +85,7 @@ class BrendManipulator:
             if match:
                 years = int(match.group(1))
                 months = int(match.group(2))
-                return f"{years} years, {months} months, {days} days"
+                return f"{years} years {months:02d} months {days:02d} days"
             
             # Buscar la edad en el formato @ID: eng|VanKleeck|CHI|3;09.|male|TD||Target_Child|||
             id_pattern = r'@ID:.*?CHI\|(\d+);(\d+)\.'
@@ -88,7 +93,7 @@ class BrendManipulator:
             if match:
                 years = int(match.group(1))
                 months = int(match.group(2))
-                return f"{years} years, {months} months, {days} days"
+                return f"{years} years {months:02d} months {days:02d} days"
             
             # Si no se encuentra en el PID, buscar en el contenido
             age_pattern = r'\*CHI:\s*.*?(\d+)[;:]'
@@ -96,14 +101,14 @@ class BrendManipulator:
             if match:
                 years = int(match.group(1))
                 months = 0
-                return f"{years} years, {months} months, {days} days"
+                return f"{years} years {months:02d} months {days:02d} days"
             
             # Si no se encuentra la edad, devolver valor por defecto
-            return "0 years, 0 months, 0 days"
+            return "0 years 00 months 00 days"
             
         except Exception as e:
             print(f"Error al extraer la edad: {str(e)}")
-            return "0 years, 0 months, 0 days"
+            return "0 years 00 months 00 days"
     
     def extract_child_name(self, content, file_path=None):
         """Extrae el nombre del niño del contenido del archivo de Brend."""
