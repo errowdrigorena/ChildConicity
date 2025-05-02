@@ -28,6 +28,7 @@ MANIFEST
 
 # Project Created files
 Corpus_processed/
+Corpus_modified/
 coverage_report/
 
 # PyInstaller

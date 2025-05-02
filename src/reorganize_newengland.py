@@ -39,33 +39,35 @@ def process_directory(source_dir, target_dir):
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-    # Obtener todas las subcarpetas de NewEngland
+    # Obtener todas las subcarpetas de NewEngland (14, 20, 32)
     subdirs = [d for d in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, d))]
 
-    # Para cada subcarpeta
+    # Crear directorios Target01 a Target99
+    for i in range(1, 100):
+        target_folder = f'Target{i:02d}'  # Formato: Target01, Target02, etc.
+        target_folder_path = os.path.join(target_dir, target_folder)
+        
+        # Crear la carpeta de destino si no existe
+        if not os.path.exists(target_folder_path):
+            os.makedirs(target_folder_path)
+
+    # Para cada subcarpeta (14, 20, 32)
     for subdir in subdirs:
         subdir_path = os.path.join(source_dir, subdir)
         
         # Para cada archivo .cha en la subcarpeta
         for file in os.listdir(subdir_path):
             if file.endswith('.cha'):
-                # Extraer el número del archivo (sin la extensión)
-                file_number = file.split('.')[0]
-                
-                # Crear el nombre de la carpeta de destino
-                target_folder = f'Target{file_number}'
+                # El número del archivo (sin la extensión) indica el Target
+                target_num = int(os.path.splitext(file)[0])  # Convertir a entero
+                target_folder = f'Target{target_num:02d}'
                 target_folder_path = os.path.join(target_dir, target_folder)
                 
-                # Crear la carpeta de destino si no existe
-                if not os.path.exists(target_folder_path):
-                    os.makedirs(target_folder_path)
-                
-                # Crear el nuevo nombre del archivo
-                new_filename = f'{subdir}.cha'
-                
-                # Copiar y renombrar el archivo
+                # Copiar el archivo con el nombre de la subcarpeta (14.cha, 20.cha, 32.cha)
                 source_file = os.path.join(subdir_path, file)
-                target_file = os.path.join(target_folder_path, new_filename)
+                target_file = os.path.join(target_folder_path, f'{subdir}.cha')
+                
+                # Copiar el archivo
                 shutil.copy2(source_file, target_file)
                 
                 # Extraer la edad y modificar el archivo .cha

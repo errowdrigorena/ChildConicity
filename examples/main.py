@@ -1,22 +1,19 @@
-import sys
 import os
+import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.reader import Reader
-from src.data_formatter import DataFormatter
-from src.word_counter import WordCounter
-from src.iconicity_model import IconicityModel
-from src.word_dictionary_merger import WordDictionaryMerger
-from src.corpus_manipulator import CorpusManipulator
+from src.brend_manipulator import BrendManipulator
 
-def process_corpus(corpus_name, base_dir):
-    """Procesa un corpus específico y muestra sus resultados"""
-    print(f"\n{'='*50}\nProcesando corpus: {corpus_name}\n{'='*50}")
+def main():
+    """Función principal para procesar el corpus de Brend"""
+    # Configurar rutas
+    base_dir = os.path.join("Corpus", "Brent")
+    output_dir = os.path.join("Corpus", "Brent_modified")
     
-    # Crear el manipulador genérico para el corpus
-    manipulator = CorpusManipulator()
+    # Crear el manipulador
+    manipulator = BrendManipulator()
     manipulator.base_dir = base_dir
-    manipulator.process_directory()
+    manipulator.output_dir = output_dir
     
     # Leer el directorio
     reader = Reader()
