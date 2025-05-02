@@ -27,9 +27,7 @@ share/python-wheels/
 MANIFEST
 
 # Project Created files
-Brent_modified/
-NewEngland_modified/
-Post_modified/
+Corpus_modified/
 coverage_report/
 
 # PyInstaller
