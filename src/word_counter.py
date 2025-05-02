@@ -3,7 +3,7 @@ from collections import defaultdict
 
 class WordCounter:
     """
-    Clase para contar palabras en un diccionario de datos.
+    Clase para contar palabras en un texto.
     """
     
     def __init__(self):
@@ -12,30 +12,35 @@ class WordCounter:
         """
         self.word_counts = defaultdict(int)
     
-    def count_words(self, data_dict):
+    def count_words(self, data):
         """
-        Cuenta las palabras en los campos 'text' del diccionario.
+        Cuenta las palabras en el texto proporcionado.
         
         Args:
-            data_dict (dict): Diccionario con campos 'text' para procesar.
+            data (str or dict): String con texto o diccionario con campos 'text' para procesar.
             
         Returns:
-            dict: Diccionario con palabras como claves y diccionarios de conteo como valores.
-                 Formato: {'palabra': {'count': N}}
+            dict: Diccionario con palabras como claves y sus conteos como valores.
         """
-        # Reiniciar el contador
-        self.word_counts.clear()
-        
-        # Contar palabras en cada entrada
-        for entry in data_dict.values():
-            if 'text' in entry:
-                # Encontrar todas las palabras usando regex
-                words = re.findall(r'\b\w+\b', entry['text'].lower())
+        # Si data es un string, procesarlo directamente
+        if isinstance(data, str):
+            words = re.findall(r'\b\w+\b', data.lower())
+            for word in words:
+                self.word_counts[word] += 1
+        # Si data es un diccionario, procesar cada entrada
+        elif isinstance(data, dict):
+            if 'text' in data:
+                words = re.findall(r'\b\w+\b', data['text'].lower())
                 for word in words:
                     self.word_counts[word] += 1
+            else:
+                for entry in data.values():
+                    if isinstance(entry, dict) and 'text' in entry:
+                        words = re.findall(r'\b\w+\b', entry['text'].lower())
+                        for word in words:
+                            self.word_counts[word] += 1
         
-        # Convertir el defaultdict a un diccionario con el formato deseado
-        return {word: {'count': count} for word, count in self.word_counts.items()}
+        return dict(self.word_counts)
     
     def get_word_counts(self):
         """
@@ -58,4 +63,10 @@ class WordCounter:
         """
         # Ordenar por conteo y luego alfabéticamente para desempates
         return sorted(self.word_counts.items(), 
-                     key=lambda x: (-x[1], x[0]))[:n] 
+                     key=lambda x: (-x[1], x[0]))[:n]
+    
+    def clear(self):
+        """
+        Limpia el contador de palabras.
+        """
+        self.word_counts.clear() 

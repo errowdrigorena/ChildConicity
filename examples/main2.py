@@ -67,9 +67,19 @@ def group_data_by_age(processed_data):
                                 'files': []
                             }
                         
-                        # Añadir los datos de niños y adultos
-                        data_grouped_by_age[age_quarter]['children_data'].update(file['children_data'])
-                        data_grouped_by_age[age_quarter]['adults_data'].update(file['adults_data'])
+                        # Generar claves únicas para los datos de niños y adultos
+                        child_base = len(data_grouped_by_age[age_quarter]['children_data'])
+                        adult_base = len(data_grouped_by_age[age_quarter]['adults_data'])
+                        
+                        # Añadir los datos de niños con claves únicas
+                        for i, (_, utterance) in enumerate(file['children_data'].items()):
+                            key = f"{child_base + i + 1}"
+                            data_grouped_by_age[age_quarter]['children_data'][key] = utterance
+                        
+                        # Añadir los datos de adultos con claves únicas
+                        for i, (_, utterance) in enumerate(file['adults_data'].items()):
+                            key = f"{adult_base + i + 1}"
+                            data_grouped_by_age[age_quarter]['adults_data'][key] = utterance
                         
                         # Obtener una frase de ejemplo de niño y adulto
                         child_example = next(iter(file['children_data'].values()))['text'] if file['children_data'] else "No hay expresiones de niños"
@@ -86,6 +96,79 @@ def group_data_by_age(processed_data):
                         })
     
     return data_grouped_by_age
+
+def create_age_group_statistics(data_grouped_by_age, iconicity_model):
+    """
+    Crea un diccionario con estadísticas de palabras e iconicidad por grupo de edad.
+    
+    Args:
+        data_grouped_by_age (dict): Datos agrupados por edad
+        iconicity_model (IconicityModel): Modelo de iconicidad
+        
+    Returns:
+        dict: Estadísticas por grupo de edad
+    """
+    age_group_stats = {}
+    
+    # Obtener todas las palabras con iconicidad del modelo
+    all_iconicity_words = set(iconicity_model.get_all_word_data())
+    
+    for age_group, data in data_grouped_by_age.items():
+        # Crear contadores de palabras para niños y adultos
+        children_counter = WordCounter()
+        adults_counter = WordCounter()
+        
+        # Contar palabras de niños
+        for utterance in data['children_data'].values():
+            children_counter.count_words(utterance['text'])
+        
+        # Contar palabras de adultos
+        for utterance in data['adults_data'].values():
+            adults_counter.count_words(utterance['text'])
+        
+        # Crear entrada en el diccionario
+        age_group_stats[age_group] = {
+            'age_group': age_group,
+            'children_counted_words': children_counter.get_word_counts(),
+            'adults_counted_words': adults_counter.get_word_counts(),
+            'all_iconicity_words': all_iconicity_words
+        }
+    
+    return age_group_stats
+
+def print_age_group_statistics(age_group_stats, num_words=10):
+    """
+    Imprime las estadísticas de palabras por grupo de edad.
+    
+    Args:
+        age_group_stats (dict): Estadísticas por grupo de edad
+        num_words (int): Número de palabras más frecuentes a mostrar
+    """
+    for age_group, stats in sorted(age_group_stats.items()):
+        print(f"\n=== Grupo de edad {age_group} ===")
+        
+        # Palabras más frecuentes de niños
+        print("\nTop palabras de niños:")
+        children_words = sorted(stats['children_counted_words'].items(), 
+                             key=lambda x: x[1], reverse=True)[:num_words]
+        for word, count in children_words:
+            print(f"  {word}: {count}")
+        
+        # Palabras más frecuentes de adultos
+        print("\nTop palabras de adultos:")
+        adults_words = sorted(stats['adults_counted_words'].items(), 
+                            key=lambda x: x[1], reverse=True)[:num_words]
+        for word, count in adults_words:
+            print(f"  {word}: {count}")
+        
+        # Estadísticas de palabras con iconicidad
+        children_iconic = set(stats['children_counted_words'].keys()) & stats['all_iconicity_words']
+        adults_iconic = set(stats['adults_counted_words'].keys()) & stats['all_iconicity_words']
+        
+        print(f"\nEstadísticas de iconicidad:")
+        print(f"  Palabras con iconicidad usadas por niños: {len(children_iconic)}")
+        print(f"  Palabras con iconicidad usadas por adultos: {len(adults_iconic)}")
+        print("-" * 50)
 
 def main():
     """Función principal del programa"""
@@ -119,24 +202,39 @@ def main():
     print("\nAgrupando datos por edad...")
     data_grouped_by_age = group_data_by_age(processed_data)
     
-    # Mostrar estadísticas por grupo de edad
-    print("\nEstadísticas por grupo de edad:")
-    for age_group, data in sorted(data_grouped_by_age.items()):
-        children_count = len(data['children_data'])
-        adults_count = len(data['adults_data'])
-        files_count = len(data['files'])
-        print(f"\nGrupo de edad {age_group}:")
-        print(f"  Archivos: {files_count}")
-        print(f"  Expresiones de niños: {children_count}")
-        print(f"  Expresiones de adultos: {adults_count}")
-        print("  Archivos incluidos:")
-        for file in data['files']:
-            print(f"\n    - {file['child_name']} ({file['child_age']})")
-            print(f"      Grupo de edad: {file['age_group']}")
-            print(f"      Archivo: {file['file_path']}")
-            print(f"      Ejemplo de expresión del niño: {file['child_example']}")
-            print(f"      Ejemplo de expresión del adulto: {file['adult_example']}")
-            print("      " + "-" * 50)
+    # Crear el modelo de iconicidad
+    print("\nCreando modelo de iconicidad...")
+    formatter = DataFormatter()
+    csv_data = formatter.format_csv_data_from('iconicity_ratings_cleaned.csv')
+    iconicity_model = IconicityModel(csv_data)
+    
+    # Crear estadísticas por grupo de edad
+    print("\nCreando estadísticas por grupo de edad...")
+    age_group_stats = create_age_group_statistics(data_grouped_by_age, iconicity_model)
+    
+    # Mostrar estadísticas
+    print("\nMostrando estadísticas por grupo de edad:")
+    print_age_group_statistics(age_group_stats)
+    
+    # Mostrar estadísticas por grupo de edad este chunck 
+    # está probado y funciona
+    # print("\nEstadísticas por grupo de edad:")
+    # for age_group, data in sorted(data_grouped_by_age.items()):
+    #     children_count = len(data['children_data'])
+    #     adults_count = len(data['adults_data'])
+    #     files_count = len(data['files'])
+    #     print(f"\nGrupo de edad {age_group}:")
+    #     print(f"  Archivos: {files_count}")
+    #     print(f"  Expresiones de niños: {children_count}")
+    #     print(f"  Expresiones de adultos: {adults_count}")
+    #     print("  Archivos incluidos:")
+    #     for file in data['files']:
+    #         print(f"\n    - {file['child_name']} ({file['child_age']})")
+    #         print(f"      Grupo de edad: {file['age_group']}")
+    #         print(f"      Archivo: {file['file_path']}")
+    #         print(f"      Ejemplo de expresión del niño: {file['child_example']}")
+    #         print(f"      Ejemplo de expresión del adulto: {file['adult_example']}")
+    #         print("      " + "-" * 50)
     
     # # Crear el modelo de iconicidad
     # print("\nCreando modelo de iconicidad...")
