@@ -33,7 +33,57 @@ def main():
     # Mostrar los primeros 4 metadatos de cada archivo
     print("\nPrimeros 4 metadatos de cada archivo:")
     print_sampled_metadata(corpus_data)
+    
+    # Procesar los datos usando DataFormatter
+    print("\nProcesando datos con DataFormatter...")
+    processed_data = process_data_with_formatter(corpus_data)
+    
+    
+    # Crear el modelo de iconicidad
+    print("\nCreando modelo de iconicidad...")
+    formatter = DataFormatter()
+    csv_data = formatter.format_csv_data_from('iconicity_ratings_cleaned.csv')
+    iconicity_model = IconicityModel(csv_data)
+    
+    # Mostrar las primeras 5 palabras del modelo
+    print("\nPrimeras 5 palabras del modelo de iconicidad:")
+    word_data = iconicity_model.get_all_word_data()
+    for i, (word, data) in enumerate(word_data.items()):
+        if i >= 5:
+            break
+        print(f"\nPalabra: {word}")
+        print(f"Datos: {data}")
+    
+    # Mostrar estadísticas finales
+    print("\nProcesamiento completado.")
+    total_children_utterances = 0
+    total_adults_utterances = 0
+    
+    for corpus_name in processed_data['Corpus_modified']:
+        corpus_children = 0
+        corpus_adults = 0
+        for dir_name, content in processed_data['Corpus_modified'][corpus_name].items():
+            if 'files' in content:
+                for file in content['files']:
+                    if 'children_data' in file:
+                        corpus_children += len(file['children_data'])
+                    if 'adults_data' in file:
+                        corpus_adults += len(file['adults_data'])
+        
+        print(f"\nCorpus {corpus_name}:")
+        print(f"  Total expresiones de niños: {corpus_children}")
+        print(f"  Total expresiones de adultos: {corpus_adults}")
+        
+        total_children_utterances += corpus_children
+        total_adults_utterances += corpus_adults
+    
+    print(f"\nTotales globales:")
+    print(f"  Total expresiones de niños: {total_children_utterances}")
+    print(f"  Total expresiones de adultos: {total_adults_utterances}")
 
+    # Mostrar las expresiones tempranas de Lew
+    show_lew_early_expressions(processed_data)
+    
 def print_directory_structure(data, level=0):
     """
     Imprime la estructura del directorio de forma visual.
@@ -100,6 +150,93 @@ def print_sampled_metadata(data):
                         if file['metadata'].get('utterances'):
                             print(f"Primera expresión: {file['metadata']['utterances'][0]['text']}")
                         print("-" * 50)
+
+def process_data_with_formatter(corpus_data):
+    """
+    Procesa los datos usando DataFormatter para separar datos de niños y adultos,
+    manteniendo la estructura jerárquica del corpus.
+    
+    Args:
+        corpus_data (dict): Datos del corpus a procesar
+        
+    Returns:
+        dict: Estructura jerárquica con los datos separados por niños y adultos
+    """
+    # Crear instancias de DataFormatter para cada corpus
+    brent_formatter = DataFormatter()
+    newengland_formatter = DataFormatter()
+    post_formatter = DataFormatter()
+    vankleeck_formatter = DataFormatter()
+    
+    # Estructura resultante que mantendrá la jerarquía
+    result = {'Corpus_modified': {}}
+    
+    # Procesar cada corpus
+    for corpus_name in ['Brent', 'NewEngland', 'Post', 'VanKleeck']:
+        if corpus_name in corpus_data['Corpus_modified']:
+            result['Corpus_modified'][corpus_name] = {}
+            corpus_data_current = corpus_data['Corpus_modified'][corpus_name]
+            
+            # Seleccionar el formatter correspondiente
+            formatter = {
+                'Brent': brent_formatter,
+                'NewEngland': newengland_formatter,
+                'Post': post_formatter,
+                'VanKleeck': vankleeck_formatter
+            }[corpus_name]
+            
+            # Procesar cada subdirectorio
+            for dir_name, content in corpus_data_current.items():
+                if 'files' in content:
+                    result['Corpus_modified'][corpus_name][dir_name] = {
+                        'files': []
+                    }
+                    
+                    # Procesar cada archivo
+                    for file in content['files']:
+                        if file['metadata']['file_path'].endswith('.cha'):
+                            file_path = file['metadata']['file_path']
+                            children_data, adults_data = formatter.format_cha_data_from(file_path)
+                            
+                            # Crear una copia del archivo original con los datos separados
+                            processed_file = {
+                                'metadata': file['metadata'].copy(),
+                                'children_data': children_data,
+                                'adults_data': adults_data
+                            }
+                            
+                            result['Corpus_modified'][corpus_name][dir_name]['files'].append(processed_file)
+    
+    return result
+
+def show_lew_early_expressions(processed_data):
+    """
+    Muestra las expresiones de Lew cuando era más joven.
+    
+    Args:
+        processed_data (dict): Datos procesados del corpus
+    """
+    print("\n=== Expresiones tempranas de Lew ===")
+    
+    # Buscar los archivos de Lew en el corpus Post
+    if 'Post' in processed_data['Corpus_modified'] and 'Lew' in processed_data['Corpus_modified']['Post']:
+        lew_files = processed_data['Corpus_modified']['Post']['Lew']['files']
+        
+        # Ordenar los archivos por edad
+        sorted_files = sorted(lew_files, key=lambda x: x['metadata'].get('child_age', ''))
+        
+        # Mostrar las expresiones del archivo más antiguo
+        if sorted_files:
+            oldest_file = sorted_files[0]
+            print(f"\nArchivo: {oldest_file['metadata']['file_path']}")
+            print(f"Edad: {oldest_file['metadata'].get('child_age', 'N/A')}")
+            print("\nPrimeras 20 expresiones de Lew:")
+            
+            # Mostrar las primeras 20 expresiones de Lew
+            for i, (id, entry) in enumerate(list(oldest_file['children_data'].items())[:20]):
+                print(f"\n{i+1}. {entry['text']}")
+                if entry.get('timestamp'):
+                    print(f"   Tiempo: {entry['timestamp']['start']}-{entry['timestamp']['end']}")
 
 if __name__ == "__main__":
     main() 
