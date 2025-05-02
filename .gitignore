@@ -27,7 +27,7 @@ share/python-wheels/
 MANIFEST
 
 # Project Created files
-Corpus_modified/
+Corpus_processed/
 coverage_report/
 
 # PyInstaller

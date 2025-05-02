@@ -10,11 +10,22 @@ from src.word_dictionary_merger import WordDictionaryMerger
 from src.corpus_manipulator import CorpusManipulator
 
 def main():
+    # Definir directorios de entrada y salida
+    input_dir = 'Corpus'
+    output_dir = 'Corpus_processed'
+    
+    # Procesar los archivos con el CorpusManipulator
+    print("\nProcesando archivos con CorpusManipulator...")
+    manipulator = CorpusManipulator()
+    manipulator.base_dir = input_dir
+    manipulator.output_dir = output_dir
+    manipulator.process_directory()
+    
     # Crear instancia del Reader
     reader = Reader()
     
-    # Leer todos los directorios dentro de Corpus_modified
-    corpus_data = reader.read_directory('Corpus_modified')
+    # Leer todos los directorios dentro del directorio procesado
+    corpus_data = reader.read_directory(output_dir)
     
     # Mostrar la estructura del diccionario anidado
     print("\nEstructura del corpus:")
