@@ -14,7 +14,8 @@ def test_count_words(word_counter):
     }
     
     # Contar palabras
-    counts = word_counter.count_words(test_data)
+    word_counter.count_words(test_data)
+    counts = word_counter.get_word_counts()
     
     # Verificar resultados
     assert counts['hola']['count'] == 3
@@ -23,7 +24,8 @@ def test_count_words(word_counter):
 
 def test_empty_data(word_counter):
     # Probar con un diccionario vacío
-    counts = word_counter.count_words({})
+    word_counter.count_words({})
+    counts = word_counter.get_word_counts()
     assert len(counts) == 0
 
 def test_no_text_field(word_counter):
@@ -32,7 +34,8 @@ def test_no_text_field(word_counter):
         1: {'other': 'data'},
         2: {'more': 'data'}
     }
-    counts = word_counter.count_words(test_data)
+    word_counter.count_words(test_data)
+    counts = word_counter.get_word_counts()
     assert len(counts) == 0
 
 def test_get_most_common(word_counter):
@@ -59,7 +62,8 @@ def test_case_insensitive(word_counter):
     }
     
     # Contar palabras
-    counts = word_counter.count_words(test_data)
+    word_counter.count_words(test_data)
+    counts = word_counter.get_word_counts()
     
     # Verificar resultados
     assert counts['hola']['count'] == 2

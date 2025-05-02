@@ -18,9 +18,6 @@ class WordCounter:
         
         Args:
             data (str or dict): String con texto o diccionario con campos 'text' para procesar.
-            
-        Returns:
-            dict: Diccionario con palabras como claves y sus conteos como valores.
         """
         # Si data es un string, procesarlo directamente
         if isinstance(data, str):
@@ -39,17 +36,18 @@ class WordCounter:
                         words = re.findall(r'\b\w+\b', entry['text'].lower())
                         for word in words:
                             self.word_counts[word] += 1
-        
-        return dict(self.word_counts)
     
     def get_word_counts(self):
         """
         Obtiene el diccionario de conteo de palabras.
         
         Returns:
-            dict: Diccionario con palabras como claves y sus conteos como valores.
+            dict: Diccionario con palabras como claves y diccionarios con conteos como valores.
         """
-        return dict(self.word_counts)
+        result = {}
+        for word, count in self.word_counts.items():
+            result[word] = {'count': count}
+        return result
     
     def get_most_common(self, n=10):
         """

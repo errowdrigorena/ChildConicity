@@ -31,6 +31,8 @@ def get_age_quarter(age_str):
             years = int(age_str[:2])
             months = int(age_str[2:4])
         
+        # Asegurar que los meses estén en el rango 0-11
+        months = months % 12
         quarter = (months // 3) + 1
         return f"{years:02d}Y{quarter:02d}Q"
     except (ValueError, IndexError):
@@ -111,7 +113,7 @@ def create_age_group_statistics(data_grouped_by_age, iconicity_model):
     age_group_stats = {}
     
     # Obtener todas las palabras con iconicidad del modelo
-    all_iconicity_words = set(iconicity_model.get_all_word_data())
+    all_iconicity_words = iconicity_model.get_all_word_data()
     
     for age_group, data in data_grouped_by_age.items():
         # Crear contadores de palabras para niños y adultos
@@ -162,12 +164,134 @@ def print_age_group_statistics(age_group_stats, num_words=10):
             print(f"  {word}: {count}")
         
         # Estadísticas de palabras con iconicidad
-        children_iconic = set(stats['children_counted_words'].keys()) & stats['all_iconicity_words']
-        adults_iconic = set(stats['adults_counted_words'].keys()) & stats['all_iconicity_words']
+        children_iconic = set(word for word in stats['children_counted_words'].keys() if word in stats['all_iconicity_words'])
+        adults_iconic = set(word for word in stats['adults_counted_words'].keys() if word in stats['all_iconicity_words'])
         
         print(f"\nEstadísticas de iconicidad:")
         print(f"  Palabras con iconicidad usadas por niños: {len(children_iconic)}")
         print(f"  Palabras con iconicidad usadas por adultos: {len(adults_iconic)}")
+        print("-" * 50)
+
+def process_valid_words_by_age_group(age_group_stats, iconicity_model):
+    """
+    Procesa las palabras válidas por grupo de edad, clasificándolas en icónicas y no icónicas.
+    
+    Args:
+        age_group_stats (dict): Estadísticas por grupo de edad
+        iconicity_model (IconicityModel): Modelo de iconicidad
+        
+    Returns:
+        dict: Estadísticas de palabras válidas por grupo de edad
+    """
+    valid_words_stats = {}
+    all_iconicity_words = iconicity_model.get_all_word_data()
+    
+    for age_group, stats in age_group_stats.items():
+        # Inicializar contadores para este grupo de edad
+        group_stats = {
+            'adults': {
+                'total_words': 0,
+                'iconic_words': {},
+                'non_iconic_words': {},
+                'total_iconic_occurrences': 0,
+                'total_non_iconic_occurrences': 0,
+                'unique_iconic_words': set(),
+                'unique_non_iconic_words': set()
+            },
+            'children': {
+                'total_words': 0,
+                'iconic_words': {},
+                'non_iconic_words': {},
+                'total_iconic_occurrences': 0,
+                'total_non_iconic_occurrences': 0,
+                'unique_iconic_words': set(),
+                'unique_non_iconic_words': set()
+            }
+        }
+        
+        # Procesar palabras de adultos
+        for word, count in stats['adults_counted_words'].items():
+            group_stats['adults']['total_words'] += count
+            if word in all_iconicity_words:
+                group_stats['adults']['iconic_words'][word] = {
+                    'count': count,
+                    'rating': all_iconicity_words[word]['rating']
+                }
+                group_stats['adults']['total_iconic_occurrences'] += count
+                group_stats['adults']['unique_iconic_words'].add(word)
+            else:
+                group_stats['adults']['non_iconic_words'][word] = count
+                group_stats['adults']['total_non_iconic_occurrences'] += count
+                group_stats['adults']['unique_non_iconic_words'].add(word)
+        
+        # Procesar palabras de niños
+        for word, count in stats['children_counted_words'].items():
+            group_stats['children']['total_words'] += count
+            if word in all_iconicity_words:
+                group_stats['children']['iconic_words'][word] = {
+                    'count': count,
+                    'rating': all_iconicity_words[word]['rating']
+                }
+                group_stats['children']['total_iconic_occurrences'] += count
+                group_stats['children']['unique_iconic_words'].add(word)
+            else:
+                group_stats['children']['non_iconic_words'][word] = count
+                group_stats['children']['total_non_iconic_occurrences'] += count
+                group_stats['children']['unique_non_iconic_words'].add(word)
+        
+        valid_words_stats[age_group] = group_stats
+    
+    return valid_words_stats
+
+def print_valid_words_statistics(valid_words_stats):
+    """
+    Imprime las estadísticas de palabras válidas por grupo de edad.
+    
+    Args:
+        valid_words_stats (dict): Estadísticas de palabras válidas por grupo de edad
+    """
+    for age_group, stats in sorted(valid_words_stats.items()):
+        print(f"\n=== Grupo de edad {age_group} ===")
+        
+        # Estadísticas de adultos
+        print("\nEstadísticas de adultos:")
+        print(f"  Total de palabras: {stats['adults']['total_words']}")
+        
+        # Calcular totales de ocurrencias de palabras icónicas y no icónicas
+        total_iconic_occurrences_adults = stats['adults']['total_iconic_occurrences']
+        total_non_iconic_occurrences_adults = stats['adults']['total_non_iconic_occurrences']
+        
+        print(f"  Número total de ocurrencias de palabras icónicas: {total_iconic_occurrences_adults}")
+        print(f"  Número total de ocurrencias de palabras no icónicas: {total_non_iconic_occurrences_adults}")
+        print(f"  Número de palabras icónicas diferentes: {len(stats['adults']['iconic_words'])}")
+        print(f"  Número de palabras no icónicas diferentes: {len(stats['adults']['non_iconic_words'])}")
+        
+        # Estadísticas de niños
+        print("\nEstadísticas de niños:")
+        print(f"  Total de palabras: {stats['children']['total_words']}")
+        
+        # Calcular totales de ocurrencias de palabras icónicas y no icónicas
+        total_iconic_occurrences_children = stats['children']['total_iconic_occurrences']
+        total_non_iconic_occurrences_children = stats['children']['total_non_iconic_occurrences']
+        
+        print(f"  Número total de ocurrencias de palabras icónicas: {total_iconic_occurrences_children}")
+        print(f"  Número total de ocurrencias de palabras no icónicas: {total_non_iconic_occurrences_children}")
+        print(f"  Número de palabras icónicas diferentes: {len(stats['children']['iconic_words'])}")
+        print(f"  Número de palabras no icónicas diferentes: {len(stats['children']['non_iconic_words'])}")
+        
+        # Top 5 palabras icónicas más usadas por adultos
+        print("\nTop 5 palabras icónicas más usadas por adultos:")
+        adult_iconic = sorted(stats['adults']['iconic_words'].items(), 
+                            key=lambda x: x[1]['count'], reverse=True)[:5]
+        for word, data in adult_iconic:
+            print(f"  {word}: {data['count']} usos, rating: {data['rating']}")
+        
+        # Top 5 palabras icónicas más usadas por niños
+        print("\nTop 5 palabras icónicas más usadas por niños:")
+        child_iconic = sorted(stats['children']['iconic_words'].items(), 
+                            key=lambda x: x[1]['count'], reverse=True)[:5]
+        for word, data in child_iconic:
+            print(f"  {word}: {data['count']} usos, rating: {data['rating']}")
         print("-" * 50)
 
 def main():
@@ -210,11 +334,17 @@ def main():
     
     # Crear estadísticas por grupo de edad
     print("\nCreando estadísticas por grupo de edad...")
-    age_group_stats = create_age_group_statistics(data_grouped_by_age, iconicity_model)
+    age_group_stats_raw = create_age_group_statistics(data_grouped_by_age, iconicity_model)
     
-    # Mostrar estadísticas
-    print("\nMostrando estadísticas por grupo de edad:")
-    print_age_group_statistics(age_group_stats)
+    # Procesar palabras válidas por grupo de edad
+    print("\nProcesando palabras válidas por grupo de edad...")
+    valid_words_stats = process_valid_words_by_age_group(age_group_stats_raw, iconicity_model)
+    
+    # Mostrar estadísticas de palabras válidas
+    print("\nMostrando estadísticas de palabras válidas por grupo de edad:")
+    print_valid_words_statistics(valid_words_stats)
+
+    # Procesar palabras válidas por grupo de edad
     
     # Mostrar estadísticas por grupo de edad este chunck 
     # está probado y funciona
