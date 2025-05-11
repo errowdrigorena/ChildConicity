@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
+import os
 from typing import Dict, List, Union, Any
 
 class DataAnalysisPlotter:
@@ -246,4 +247,70 @@ class DataAnalysisPlotter:
             plt.savefig(save_path)
         else:
             plt.show()
-        plt.close() 
+        plt.close()
+
+    def plot_iconicity_distribution_by_age_group(self, save_dir: str = None):
+        """
+        Genera gráficas de distribución acumulativa de iconicidad para cada grupo de edad,
+        comparando niños y adultos. El eje Y representa el porcentaje acumulativo de ocurrencias
+        de palabras hasta cada valor de iconicidad.
+        
+        Args:
+            save_dir (str, optional): Directorio donde guardar las gráficas. Si es None, las gráficas se muestran en pantalla.
+        """
+        for age_group, stats in sorted(self.data.items()):
+            # Obtener las palabras con rating para adultos y niños
+            adults_words_with_rating = stats['adults']['iconic_words']
+            children_words_with_rating = stats['children']['iconic_words']
+
+            # Crear bins para la iconicidad (desde el mínimo hasta el máximo con incrementos de 0.25)
+            min_rating = min(min(adults_words_with_rating.values()), min(children_words_with_rating.values()))
+            max_rating = max(max(adults_words_with_rating.values()), max(children_words_with_rating.values()))
+
+            # Obtener total de palabras para adultos y niños
+            total_adults = stats['adults']['total_words']
+            total_children = stats['children']['total_words']
+
+            # Obtener mínimo y máximo de iconicidad para adultos y niños
+            adults_min_rating = min(adults_words_with_rating.values())
+            adults_max_rating = max(adults_words_with_rating.values())
+            children_min_rating = min(children_words_with_rating.values())
+            children_max_rating = max(children_words_with_rating.values())
+
+            # Obtener el mínimo y máximo de iconicidad para eje X
+            min_rating = min(adults_min_rating, children_min_rating)
+            max_rating = max(adults_max_rating, children_max_rating)
+
+            # Crear bins para la iconicidad (desde el mínimo hasta el máximo con incrementos de 0.25)
+            x_axis = np.arange(min_rating, max_rating + 0.25, 0.25)
+            
+            # Ordenar las palabras por iconicidad
+            sorted_adults_words = sorted(adults_words_with_rating.items(), key=lambda x: x[1])
+            sorted_children_words = sorted(children_words_with_rating.items(), key=lambda x: x[1])
+
+            # Crear listas para acumular ocurrencias
+            adults_cumulative = np.zeros(len(x_axis))
+            children_cumulative = np.zeros(len(x_axis))
+
+            # Acumular ocurrencias
+            current_count = 0
+            current_bin = 0
+            for rating, count in sorted_adults_words:
+                # si el rating ha sobrepasado un múltiplo de 0.25, actualizar dónde se acumula
+                if rating > x_axis[current_bin]:
+                    adults_cumulative[current_bin] = current_count
+                    current_bin += 1
+                # acumular ocurrencias
+                current_count += count
+            # actualizar el último bin
+            adults_cumulative[current_bin] = current_count
+            
+            # Repetir para niños
+            current_count = 0
+            current_bin = 0
+            for rating, count in sorted_children_words:
+                if rating > x_axis[current_bin]:
+                    children_cumulative[current_bin] = current_count
+                    current_bin += 1
+                current_count += count
+            

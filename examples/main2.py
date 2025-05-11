@@ -58,6 +58,7 @@ def group_data_by_age(processed_data):
             if 'files' in child_data:
                 # Iterar sobre cada archivo
                 for file in child_data['files']:
+
                     age = file['metadata'].get('child_age', '')
                     if age:
                         age_quarter = get_age_quarter(age)
@@ -543,5 +544,11 @@ def main():
         print(f"  Palabras icónicas: {iconic_pct:.1f}%")
         print(f"  Palabras no icónicas: {non_iconic_pct:.1f}%")
 
+    # Crear directorio de pruebas y generar gráficas de distribución de iconicidad
+    print("\nGenerando gráficas de distribución de iconicidad...")
+    pruebas_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pruebas")
+    os.makedirs(pruebas_dir, exist_ok=True)
+    plotter.plot_iconicity_distribution_by_age_group(save_dir=pruebas_dir)
+
 if __name__ == "__main__":
-    main() 
+    main()  
