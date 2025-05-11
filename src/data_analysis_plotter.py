@@ -263,54 +263,84 @@ class DataAnalysisPlotter:
             adults_words_with_rating = stats['adults']['iconic_words']
             children_words_with_rating = stats['children']['iconic_words']
 
-            # Crear bins para la iconicidad (desde el mínimo hasta el máximo con incrementos de 0.25)
-            min_rating = min(min(adults_words_with_rating.values()), min(children_words_with_rating.values()))
-            max_rating = max(max(adults_words_with_rating.values()), max(children_words_with_rating.values()))
+            # Crear listas de (rating, count) para adultos y niños
+            adults_ratings_counts = [(word_data['rating'], word_data['count']) 
+                                   for word_data in adults_words_with_rating.values()]
+            children_ratings_counts = [(word_data['rating'], word_data['count']) 
+                                     for word_data in children_words_with_rating.values()]
 
             # Obtener total de palabras para adultos y niños
-            total_adults = stats['adults']['total_words']
-            total_children = stats['children']['total_words']
+            total_adults = stats['adults']['total_iconic_occurrences']
+            total_children = stats['children']['total_iconic_occurrences']
 
-            # Obtener mínimo y máximo de iconicidad para adultos y niños
-            adults_min_rating = min(adults_words_with_rating.values())
-            adults_max_rating = max(adults_words_with_rating.values())
-            children_min_rating = min(children_words_with_rating.values())
-            children_max_rating = max(children_words_with_rating.values())
+            # Obtener mínimo y máximo de iconicidad
+            min_rating = min(min(r for r, _ in adults_ratings_counts), 
+                           min(r for r, _ in children_ratings_counts))
+            max_rating = max(max(r for r, _ in adults_ratings_counts), 
+                           max(r for r, _ in children_ratings_counts))
 
-            # Obtener el mínimo y máximo de iconicidad para eje X
-            min_rating = min(adults_min_rating, children_min_rating)
-            max_rating = max(adults_max_rating, children_max_rating)
-
-            # Crear bins para la iconicidad (desde el mínimo hasta el máximo con incrementos de 0.25)
+            # Crear bins para la iconicidad
             x_axis = np.arange(min_rating, max_rating + 0.25, 0.25)
             
             # Ordenar las palabras por iconicidad
-            sorted_adults_words = sorted(adults_words_with_rating.items(), key=lambda x: x[1])
-            sorted_children_words = sorted(children_words_with_rating.items(), key=lambda x: x[1])
+            sorted_adults = sorted(adults_ratings_counts, key=lambda x: x[0])
+            sorted_children = sorted(children_ratings_counts, key=lambda x: x[0])
 
             # Crear listas para acumular ocurrencias
             adults_cumulative = np.zeros(len(x_axis))
             children_cumulative = np.zeros(len(x_axis))
 
-            # Acumular ocurrencias
+            # Acumular ocurrencias para adultos
             current_count = 0
             current_bin = 0
-            for rating, count in sorted_adults_words:
-                # si el rating ha sobrepasado un múltiplo de 0.25, actualizar dónde se acumula
-                if rating > x_axis[current_bin]:
+            for rating, count in sorted_adults:
+                if current_bin < len(x_axis) and rating > x_axis[current_bin]:
                     adults_cumulative[current_bin] = current_count
                     current_bin += 1
-                # acumular ocurrencias
                 current_count += count
-            # actualizar el último bin
-            adults_cumulative[current_bin] = current_count
+
+            # Actualizar el último bin y los restantes
+            for i in range(current_bin, len(x_axis)):
+                adults_cumulative[i] = current_count
             
-            # Repetir para niños
-            current_count = 0
-            current_bin = 0
-            for rating, count in sorted_children_words:
-                if rating > x_axis[current_bin]:
-                    children_cumulative[current_bin] = current_count
-                    current_bin += 1
-                current_count += count
+            print("Adults cumulative for ", age_group)
+            # crear adults_cumulative_percentage
+            print("adults_cumulative: ", adults_cumulative)
+            print("total adults: ", total_adults)
+            adults_cumulative_percentage = (adults_cumulative/total_adults) * 100
+            print("adults_cumulative_percentage: ", adults_cumulative_percentage)
+
+            # # Acumular ocurrencias para niños
+            # current_count = 0
+            # current_bin = 0
+            # for rating, count in sorted_children:
+            #     if current_bin < len(x_axis) and rating > x_axis[current_bin]:
+            #         children_cumulative[current_bin] = current_count
+            #         current_bin += 1
+            #     current_count += count
+            # # Actualizar el último bin y los restantes
+            # for i in range(current_bin, len(x_axis)):
+            #     children_cumulative[i] = current_count
+
+            # Crear la gráfica
+            plt.figure(figsize=(10, 6))
+            plt.plot(x_axis, adults_cumulative/total_adults * 100, label='Adultos', marker='o', markersize=4)
+            plt.plot(x_axis, children_cumulative/total_children * 100, label='Niños', marker='s', markersize=4)
+            plt.xlabel('Iconicidad')
+            plt.ylabel('Porcentaje acumulado de palabras (%)')
+            plt.title(f'Distribución acumulativa de iconicidad - Grupo {age_group}')
+            plt.legend()
+            plt.grid(True)
             
+            # Guardar o mostrar la gráfica
+            if save_dir:
+                os.makedirs(save_dir, exist_ok=True)
+                plt.savefig(os.path.join(save_dir, f'distribucion_iconicidad_{age_group}.png'), 
+                           bbox_inches='tight', dpi=300)
+                plt.close()
+            else:
+                plt.show()
+                plt.close()
+
+
+
