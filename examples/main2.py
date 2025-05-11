@@ -521,12 +521,17 @@ def main():
     print("\nCreando gráficas de análisis...")
     plotter = DataAnalysisPlotter(valid_words_stats)
     
+    # Crear directorio para las gráficas si no existe
+    output_dir = 'iconic_vs_noniconic'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
     # Gráfica general sin porcentajes
-    plotter.plot_iconic_vs_non_iconic_by_age('iconic_vs_non_iconic_by_age.png')
+    plotter.plot_iconic_vs_non_iconic_by_age(os.path.join(output_dir, 'iconic_vs_non_iconic_by_age.png'))
     
     # Gráficas separadas con porcentajes
-    plotter.plot_iconic_vs_non_iconic_by_age_adults('iconic_vs_non_iconic_by_age_adults.png')
-    plotter.plot_iconic_vs_non_iconic_by_age_children('iconic_vs_non_iconic_by_age_children.png')
+    plotter.plot_iconic_vs_non_iconic_by_age_adults(os.path.join(output_dir, 'iconic_vs_non_iconic_by_age_adults.png'))
+    plotter.plot_iconic_vs_non_iconic_by_age_children(os.path.join(output_dir, 'iconic_vs_non_iconic_by_age_children.png'))
     
     # Mostrar porcentajes de palabras icónicas y no icónicas para adultos
     print("\nPorcentajes de palabras icónicas y no icónicas para adultos por grupo de edad:")
