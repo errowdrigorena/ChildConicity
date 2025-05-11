@@ -282,91 +282,36 @@ def print_valid_words_statistics(valid_words_stats):
         print(f"  Número de palabras icónicas diferentes: {len(stats['children']['iconic_words'])}")
         print(f"  Número de palabras no icónicas diferentes: {len(stats['children']['non_iconic_words'])}")
         
-        # Top 5 palabras icónicas más usadas por adultos
-        print("\nTop 5 palabras icónicas más usadas por adultos:")
+        # Top 10 palabras icónicas más usadas por adultos
+        print("\nTop 10 palabras icónicas más usadas por adultos:")
         adult_iconic = sorted(stats['adults']['iconic_words'].items(), 
-                            key=lambda x: x[1]['count'], reverse=True)[:5]
+                            key=lambda x: x[1]['count'], reverse=True)[:10]
         for word, data in adult_iconic:
             print(f"  {word}: {data['count']} usos, rating: {data['rating']}")
         
-        # Top 5 palabras icónicas más usadas por niños
-        print("\nTop 5 palabras icónicas más usadas por niños:")
+        # Top 10 palabras icónicas más usadas por niños
+        print("\nTop 10 palabras icónicas más usadas por niños:")
         child_iconic = sorted(stats['children']['iconic_words'].items(), 
-                            key=lambda x: x[1]['count'], reverse=True)[:5]
+                            key=lambda x: x[1]['count'], reverse=True)[:10]
         for word, data in child_iconic:
             print(f"  {word}: {data['count']} usos, rating: {data['rating']}")
         print("-" * 50)
 
-def main():
-    """Función principal del programa"""
-    # Inicializar los corpus
-    print("Inicializando corpus...")
-    initialize_corpuses()
-    print("Corpus inicializados correctamente.")
-    
-    # Definir directorios de entrada y salida
-    input_dir = 'Corpus_modified'
-    
-    # Crear instancia del Reader
-    reader = Reader()
-    
-    # Leer todos los directorios dentro del directorio procesado
-    corpus_data = reader.read_directory(input_dir)
-    
-    # Mostrar la estructura del diccionario anidado
-    print("\nEstructura del corpus:")
-    print_directory_structure(corpus_data)
-    
-    # Mostrar los primeros 4 metadatos de cada archivo
-    print("\nPrimeros 4 metadatos de cada archivo:")
-    print_sampled_metadata(corpus_data)
-    
-    # Procesar los datos usando DataFormatter
-    print("\nProcesando datos con DataFormatter...")
-    processed_data = process_data_with_formatter(corpus_data)
-    
-    # Agrupar datos por edad
-    print("\nAgrupando datos por edad...")
-    data_grouped_by_age = group_data_by_age(processed_data)
-    
-    # Crear el modelo de iconicidad
-    print("\nCreando modelo de iconicidad...")
-    formatter = DataFormatter()
-    csv_data = formatter.format_csv_data_from('iconicity_ratings_cleaned.csv')
-    iconicity_model = IconicityModel(csv_data)
-    
-    # Crear estadísticas por grupo de edad
-    print("\nCreando estadísticas por grupo de edad...")
-    age_group_stats_raw = create_age_group_statistics(data_grouped_by_age, iconicity_model)
-    
-    # Procesar palabras válidas por grupo de edad
-    print("\nProcesando palabras válidas por grupo de edad...")
-    valid_words_stats = process_valid_words_by_age_group(age_group_stats_raw, iconicity_model)
-    
-    # Mostrar estadísticas de palabras válidas
-    print("\nMostrando estadísticas de palabras válidas por grupo de edad:")
-    print_valid_words_statistics(valid_words_stats)
-    
-    # Crear y mostrar gráficas de análisis
-    print("\nCreando gráficas de análisis...")
-    plotter = DataAnalysisPlotter(valid_words_stats)
-    
-    # Gráfica general sin porcentajes
-    plotter.plot_iconic_vs_non_iconic_by_age('iconic_vs_non_iconic_by_age.png')
-    
-    # Gráficas separadas con porcentajes
-    plotter.plot_iconic_vs_non_iconic_by_age_adults('iconic_vs_non_iconic_by_age_adults.png')
-    plotter.plot_iconic_vs_non_iconic_by_age_children('iconic_vs_non_iconic_by_age_children.png')
-    
-    # Mostrar porcentajes de palabras icónicas y no icónicas para adultos
-    print("\nPorcentajes de palabras icónicas y no icónicas para adultos por grupo de edad:")
-    for age_group, stats in sorted(valid_words_stats.items()):
-        total_adults = stats['adults']['total_words']
-        iconic_pct = (stats['adults']['total_iconic_occurrences'] / total_adults * 100) if total_adults > 0 else 0
-        non_iconic_pct = (stats['adults']['total_non_iconic_occurrences'] / total_adults * 100) if total_adults > 0 else 0
-        print(f"\nGrupo de edad {age_group}:")
-        print(f"  Palabras icónicas: {iconic_pct:.1f}%")
-        print(f"  Palabras no icónicas: {non_iconic_pct:.1f}%")
+        # Top 10 palabras no icónicas más usadas por niños
+        print("\nTop 10 palabras NO icónicas más usadas por niños:")
+        child_non_iconic = sorted(stats['children']['non_iconic_words'].items(), 
+                            key=lambda x: x[1], reverse=True)[:10]
+        for word, count in child_non_iconic:
+            print(f"  {word}: {count} usos")
+        print("-" * 50)
+
+                # Top 10 palabras no icónicas más usadas por niños
+        print("\nTop 10 palabras NO icónicas más usadas por adultos:")
+        child_non_iconic = sorted(stats['adults']['non_iconic_words'].items(), 
+                            key=lambda x: x[1], reverse=True)[:10]
+        for word, count in child_non_iconic:
+            print(f"  {word}: {count} usos")
+        print("-" * 50)
 
 def print_directory_structure(data, level=0):
     """
@@ -521,6 +466,77 @@ def show_lew_early_expressions(processed_data):
                 print(f"\n{i+1}. {entry['text']}")
                 if entry.get('timestamp'):
                     print(f"   Tiempo: {entry['timestamp']['start']}-{entry['timestamp']['end']}")
+
+def main():
+    """Función principal del programa"""
+    # Inicializar los corpus
+    print("Inicializando corpus...")
+    initialize_corpuses()
+    print("Corpus inicializados correctamente.")
+    
+    # Definir directorios de entrada y salida
+    input_dir = 'Corpus_modified'
+    
+    # Crear instancia del Reader
+    reader = Reader()
+    
+    # Leer todos los directorios dentro del directorio procesado
+    corpus_data = reader.read_directory(input_dir)
+    
+    # Mostrar la estructura del diccionario anidado
+    print("\nEstructura del corpus:")
+    print_directory_structure(corpus_data)
+    
+    # Mostrar los primeros 4 metadatos de cada archivo
+    print("\nPrimeros 4 metadatos de cada archivo:")
+    print_sampled_metadata(corpus_data)
+    
+    # Procesar los datos usando DataFormatter
+    print("\nProcesando datos con DataFormatter...")
+    processed_data = process_data_with_formatter(corpus_data)
+    
+    # Agrupar datos por edad
+    print("\nAgrupando datos por edad...")
+    data_grouped_by_age = group_data_by_age(processed_data)
+    
+    # Crear el modelo de iconicidad
+    print("\nCreando modelo de iconicidad...")
+    formatter = DataFormatter()
+    csv_data = formatter.format_csv_data_from('iconicity_ratings_cleaned.csv')
+    iconicity_model = IconicityModel(csv_data)
+    
+    # Crear estadísticas por grupo de edad
+    print("\nCreando estadísticas por grupo de edad...")
+    age_group_stats_raw = create_age_group_statistics(data_grouped_by_age, iconicity_model)
+    
+    # Procesar palabras válidas por grupo de edad
+    print("\nProcesando palabras válidas por grupo de edad...")
+    valid_words_stats = process_valid_words_by_age_group(age_group_stats_raw, iconicity_model)
+    
+    # Mostrar estadísticas de palabras válidas
+    print("\nMostrando estadísticas de palabras válidas por grupo de edad:")
+    print_valid_words_statistics(valid_words_stats)
+    
+    # Crear y mostrar gráficas de análisis
+    print("\nCreando gráficas de análisis...")
+    plotter = DataAnalysisPlotter(valid_words_stats)
+    
+    # Gráfica general sin porcentajes
+    plotter.plot_iconic_vs_non_iconic_by_age('iconic_vs_non_iconic_by_age.png')
+    
+    # Gráficas separadas con porcentajes
+    plotter.plot_iconic_vs_non_iconic_by_age_adults('iconic_vs_non_iconic_by_age_adults.png')
+    plotter.plot_iconic_vs_non_iconic_by_age_children('iconic_vs_non_iconic_by_age_children.png')
+    
+    # Mostrar porcentajes de palabras icónicas y no icónicas para adultos
+    print("\nPorcentajes de palabras icónicas y no icónicas para adultos por grupo de edad:")
+    for age_group, stats in sorted(valid_words_stats.items()):
+        total_adults = stats['adults']['total_words']
+        iconic_pct = (stats['adults']['total_iconic_occurrences'] / total_adults * 100) if total_adults > 0 else 0
+        non_iconic_pct = (stats['adults']['total_non_iconic_occurrences'] / total_adults * 100) if total_adults > 0 else 0
+        print(f"\nGrupo de edad {age_group}:")
+        print(f"  Palabras icónicas: {iconic_pct:.1f}%")
+        print(f"  Palabras no icónicas: {non_iconic_pct:.1f}%")
 
 if __name__ == "__main__":
     main() 
