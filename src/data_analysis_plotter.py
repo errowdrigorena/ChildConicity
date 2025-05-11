@@ -258,10 +258,20 @@ class DataAnalysisPlotter:
         Args:
             save_dir (str, optional): Directorio donde guardar las gráficas. Si es None, las gráficas se muestran en pantalla.
         """
+        print_valid_words_statistics(self.data)
+
         for age_group, stats in sorted(self.data.items()):
             # Obtener las palabras con rating para adultos y niños
             adults_words_with_rating = stats['adults']['iconic_words']
             children_words_with_rating = stats['children']['iconic_words']
+
+            # Verificar si hay datos para adultos y niños
+            has_adult_data = len(adults_words_with_rating) > 0
+            has_children_data = len(children_words_with_rating) > 0
+
+            if not has_adult_data and not has_children_data:
+                print(f"\nNo hay datos de iconicidad para el grupo de edad {age_group}")
+                continue
 
             # Crear listas de (rating, count) para adultos y niños
             adults_ratings_counts = [(word_data['rating'], word_data['count']) 
@@ -274,10 +284,20 @@ class DataAnalysisPlotter:
             total_children = stats['children']['total_iconic_occurrences']
 
             # Obtener mínimo y máximo de iconicidad
-            min_rating = min(min(r for r, _ in adults_ratings_counts), 
-                           min(r for r, _ in children_ratings_counts))
-            max_rating = max(max(r for r, _ in adults_ratings_counts), 
-                           max(r for r, _ in children_ratings_counts))
+            min_rating = float('inf')
+            max_rating = float('-inf')
+
+            if has_adult_data:
+                min_rating = min(min_rating, min(r for r, _ in adults_ratings_counts))
+                max_rating = max(max_rating, max(r for r, _ in adults_ratings_counts))
+
+            if has_children_data:
+                min_rating = min(min_rating, min(r for r, _ in children_ratings_counts))
+                max_rating = max(max_rating, max(r for r, _ in children_ratings_counts))
+
+            if min_rating == float('inf') or max_rating == float('-inf'):
+                print(f"\nNo se pudieron calcular los rangos de iconicidad para el grupo de edad {age_group}")
+                continue
 
             # Crear bins para la iconicidad
             x_axis = np.arange(min_rating, max_rating + 0.25, 0.25)
@@ -291,41 +311,44 @@ class DataAnalysisPlotter:
             children_cumulative = np.zeros(len(x_axis))
 
             # Acumular ocurrencias para adultos
-            current_count = 0
-            current_bin = 0
-            for rating, count in sorted_adults:
-                if current_bin < len(x_axis) and rating > x_axis[current_bin]:
-                    adults_cumulative[current_bin] = current_count
-                    current_bin += 1
-                current_count += count
+            if has_adult_data:
+                current_count = 0
+                current_bin = 0
+                for rating, count in sorted_adults:
+                    if current_bin < len(x_axis) and rating > x_axis[current_bin]:
+                        adults_cumulative[current_bin] = current_count
+                        current_bin += 1
+                    current_count += count
 
-            # Actualizar el último bin y los restantes
-            for i in range(current_bin, len(x_axis)):
-                adults_cumulative[i] = current_count
-            
-            print("Adults cumulative for ", age_group)
-            # crear adults_cumulative_percentage
-            print("adults_cumulative: ", adults_cumulative)
-            print("total adults: ", total_adults)
-            adults_cumulative_percentage = (adults_cumulative/total_adults) * 100
-            print("adults_cumulative_percentage: ", adults_cumulative_percentage)
+                # Actualizar el último bin y los restantes
+                for i in range(current_bin, len(x_axis)):
+                    adults_cumulative[i] = current_count
 
-            # # Acumular ocurrencias para niños
-            # current_count = 0
-            # current_bin = 0
-            # for rating, count in sorted_children:
-            #     if current_bin < len(x_axis) and rating > x_axis[current_bin]:
-            #         children_cumulative[current_bin] = current_count
-            #         current_bin += 1
-            #     current_count += count
-            # # Actualizar el último bin y los restantes
-            # for i in range(current_bin, len(x_axis)):
-            #     children_cumulative[i] = current_count
+            # Acumular ocurrencias para niños
+            if has_children_data:
+                current_count = 0
+                current_bin = 0
+                for rating, count in sorted_children:
+                    if current_bin < len(x_axis) and rating > x_axis[current_bin]:
+                        children_cumulative[current_bin] = current_count
+                        current_bin += 1
+                    current_count += count
+
+                # Actualizar el último bin y los restantes
+                for i in range(current_bin, len(x_axis)):
+                    children_cumulative[i] = current_count
 
             # Crear la gráfica
             plt.figure(figsize=(10, 6))
-            plt.plot(x_axis, adults_cumulative/total_adults * 100, label='Adultos', marker='o', markersize=4)
-            plt.plot(x_axis, children_cumulative/total_children * 100, label='Niños', marker='s', markersize=4)
+            
+            # Plotear datos de adultos si existen
+            if has_adult_data:
+                plt.plot(x_axis, adults_cumulative/total_adults * 100, label='Adultos', marker='o', markersize=4)
+            
+            # Plotear datos de niños si existen
+            if has_children_data:
+                plt.plot(x_axis, children_cumulative/total_children * 100, label='Niños', marker='s', markersize=4)
+            
             plt.xlabel('Iconicidad')
             plt.ylabel('Porcentaje acumulado de palabras (%)')
             plt.title(f'Distribución acumulativa de iconicidad - Grupo {age_group}')
@@ -344,3 +367,38 @@ class DataAnalysisPlotter:
 
 
 
+def print_valid_words_statistics(valid_words_stats):
+    """
+    Imprime las estadísticas de palabras válidas por grupo de edad.
+    
+    Args:
+        valid_words_stats (dict): Estadísticas de palabras válidas por grupo de edad
+    """
+    for age_group, stats in sorted(valid_words_stats.items()):
+        print(f"\n=== Grupo de edad {age_group} ===")
+        
+        # Estadísticas de adultos
+        print("\nEstadísticas de adultos:")
+        print(f"  Total de palabras: {stats['adults']['total_words']}")
+        
+        # Calcular totales de ocurrencias de palabras icónicas y no icónicas
+        total_iconic_occurrences_adults = stats['adults']['total_iconic_occurrences']
+        total_non_iconic_occurrences_adults = stats['adults']['total_non_iconic_occurrences']
+        
+        print(f"  Número total de ocurrencias de palabras icónicas: {total_iconic_occurrences_adults}")
+        print(f"  Número total de ocurrencias de palabras no icónicas: {total_non_iconic_occurrences_adults}")
+        print(f"  Número de palabras icónicas diferentes: {len(stats['adults']['iconic_words'])}")
+        print(f"  Número de palabras no icónicas diferentes: {len(stats['adults']['non_iconic_words'])}")
+        
+        # Estadísticas de niños
+        print("\nEstadísticas de niños:")
+        print(f"  Total de palabras: {stats['children']['total_words']}")
+        
+        # Calcular totales de ocurrencias de palabras icónicas y no icónicas
+        total_iconic_occurrences_children = stats['children']['total_iconic_occurrences']
+        total_non_iconic_occurrences_children = stats['children']['total_non_iconic_occurrences']
+        
+        print(f"  Número total de ocurrencias de palabras icónicas: {total_iconic_occurrences_children}")
+        print(f"  Número total de ocurrencias de palabras no icónicas: {total_non_iconic_occurrences_children}")
+        print(f"  Número de palabras icónicas diferentes: {len(stats['children']['iconic_words'])}")
+        print(f"  Número de palabras no icónicas diferentes: {len(stats['children']['non_iconic_words'])}")

@@ -1,0 +1,31 @@
+    # # Crear y mostrar gráficas de análisis
+    # print("\nCreando gráficas de análisis...")
+    # plotter = DataAnalysisPlotter(valid_words_stats)
+    
+    # # Crear directorio para las gráficas si no existe
+    # output_dir = 'iconic_vs_noniconic'
+    # if not os.path.exists(output_dir):
+    #     os.makedirs(output_dir)
+    
+    # # Gráfica general sin porcentajes
+    # plotter.plot_iconic_vs_non_iconic_by_age(os.path.join(output_dir, 'iconic_vs_non_iconic_by_age.png'))
+    
+    # # Gráficas separadas con porcentajes
+    # plotter.plot_iconic_vs_non_iconic_by_age_adults(os.path.join(output_dir, 'iconic_vs_non_iconic_by_age_adults.png'))
+    # plotter.plot_iconic_vs_non_iconic_by_age_children(os.path.join(output_dir, 'iconic_vs_non_iconic_by_age_children.png'))
+    
+    # # Mostrar porcentajes de palabras icónicas y no icónicas para adultos
+    # print("\nPorcentajes de palabras icónicas y no icónicas para adultos por grupo de edad:")
+    # for age_group, stats in sorted(valid_words_stats.items()):
+    #     total_adults = stats['adults']['total_words']
+    #     iconic_pct = (stats['adults']['total_iconic_occurrences'] / total_adults * 100) if total_adults > 0 else 0
+    #     non_iconic_pct = (stats['adults']['total_non_iconic_occurrences'] / total_adults * 100) if total_adults > 0 else 0
+    #     print(f"\nGrupo de edad {age_group}:")
+    #     print(f"  Palabras icónicas: {iconic_pct:.1f}%")
+    #     print(f"  Palabras no icónicas: {non_iconic_pct:.1f}%")
+
+    # # Crear directorio de pruebas y generar gráficas de distribución de iconicidad
+    # print("\nGenerando gráficas de distribución de iconicidad...")
+    # pruebas_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pruebas")
+    # os.makedirs(pruebas_dir, exist_ok=True)
+    # plotter.plot_iconicity_distribution_by_age_group(save_dir=pruebas_dir)

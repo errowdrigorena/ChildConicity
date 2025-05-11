@@ -13,7 +13,8 @@ from src.data_analysis_plotter import DataAnalysisPlotter
 
 def get_age_quarter(age_str):
     """
-    Convierte una cadena de edad en formato YYYYMMDD a formato YYQ.
+    Convierte una cadena de edad en formato YYYYMMDD o "X years Y months Z days" a formato YYQ.
+    Calcula el cuarto basado en los meses del año.
     
     Args:
         age_str (str): Edad en formato YYYYMMDD o "X years Y months Z days"
@@ -32,9 +33,12 @@ def get_age_quarter(age_str):
             years = int(age_str[:2])
             months = int(age_str[2:4])
         
-        # Asegurar que los meses estén en el rango 0-11
-        months = months % 12
-        quarter = (months // 3) + 1
+        # Calcular el cuarto basado en los meses (1-3, 4-6, 7-9, 10-12)
+        quarter = ((months - 1) // 3) + 1
+        
+        # Asegurar que el cuarto esté en el rango 1-4
+        quarter = min(max(quarter, 1), 4)
+        
         return f"{years:02d}Y{quarter:02d}Q"
     except (ValueError, IndexError):
         return "00Y00Q"
@@ -50,6 +54,7 @@ def group_data_by_age(processed_data):
         dict: Datos agrupados por edad en formato YYQ
     """
     data_grouped_by_age = {}
+    processed_files = set()  # Conjunto para rastrear archivos ya procesados
     
     # Iterar sobre cada corpus
     for corpus_name, corpus_data in processed_data['Corpus_modified'].items():
@@ -58,6 +63,12 @@ def group_data_by_age(processed_data):
             if 'files' in child_data:
                 # Iterar sobre cada archivo
                 for file in child_data['files']:
+                    file_path = file['metadata']['file_path']
+                    
+                    # Si el archivo ya fue procesado, saltarlo
+                    if file_path in processed_files:
+                        continue
+                    processed_files.add(file_path)
 
                     age = file['metadata'].get('child_age', '')
                     if age:
@@ -91,7 +102,7 @@ def group_data_by_age(processed_data):
                         
                         # Añadir información del archivo
                         data_grouped_by_age[age_quarter]['files'].append({
-                            'file_path': file['metadata']['file_path'],
+                            'file_path': file_path,
                             'child_name': file['metadata'].get('child_name', 'N/A'),
                             'child_age': age,
                             'age_group': age_quarter,
@@ -392,12 +403,6 @@ def process_data_with_formatter(corpus_data):
     Returns:
         dict: Estructura jerárquica con los datos separados por niños y adultos
     """
-    # Crear instancias de DataFormatter para cada corpus
-    brent_formatter = DataFormatter()
-    newengland_formatter = DataFormatter()
-    post_formatter = DataFormatter()
-    vankleeck_formatter = DataFormatter()
-    
     # Estructura resultante que mantendrá la jerarquía
     result = {'Corpus_modified': {}}
     
@@ -406,14 +411,6 @@ def process_data_with_formatter(corpus_data):
         if corpus_name in corpus_data['Corpus_modified']:
             result['Corpus_modified'][corpus_name] = {}
             corpus_data_current = corpus_data['Corpus_modified'][corpus_name]
-            
-            # Seleccionar el formatter correspondiente
-            formatter = {
-                'Brent': brent_formatter,
-                'NewEngland': newengland_formatter,
-                'Post': post_formatter,
-                'VanKleeck': vankleeck_formatter
-            }[corpus_name]
             
             # Procesar cada subdirectorio
             for dir_name, content in corpus_data_current.items():
@@ -426,6 +423,8 @@ def process_data_with_formatter(corpus_data):
                     for file in content['files']:
                         if file['metadata']['file_path'].endswith('.cha'):
                             file_path = file['metadata']['file_path']
+                            # Crear una nueva instancia de DataFormatter para cada archivo
+                            formatter = DataFormatter()
                             children_data, adults_data = formatter.format_cha_data_from(file_path)
                             
                             # Crear una copia del archivo original con los datos separados
@@ -517,7 +516,7 @@ def main():
     # Mostrar estadísticas de palabras válidas
     print("\nMostrando estadísticas de palabras válidas por grupo de edad:")
     print_valid_words_statistics(valid_words_stats)
-    
+
     # Crear y mostrar gráficas de análisis
     print("\nCreando gráficas de análisis...")
     plotter = DataAnalysisPlotter(valid_words_stats)
@@ -549,6 +548,5 @@ def main():
     pruebas_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pruebas")
     os.makedirs(pruebas_dir, exist_ok=True)
     plotter.plot_iconicity_distribution_by_age_group(save_dir=pruebas_dir)
-
 if __name__ == "__main__":
     main()  
