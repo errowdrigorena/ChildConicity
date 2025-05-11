@@ -9,6 +9,7 @@ from src.iconicity_model import IconicityModel
 from src.reader import Reader
 from src.word_counter import WordCounter
 from src.word_dictionary_merger import WordDictionaryMerger
+from src.data_analysis_plotter import DataAnalysisPlotter
 
 def get_age_quarter(age_str):
     """
@@ -210,7 +211,8 @@ def process_valid_words_by_age_group(age_group_stats, iconicity_model):
         }
         
         # Procesar palabras de adultos
-        for word, count in stats['adults_counted_words'].items():
+        for word, count_data in stats['adults_counted_words'].items():
+            count = count_data['count']
             group_stats['adults']['total_words'] += count
             if word in all_iconicity_words:
                 group_stats['adults']['iconic_words'][word] = {
@@ -225,7 +227,8 @@ def process_valid_words_by_age_group(age_group_stats, iconicity_model):
                 group_stats['adults']['unique_non_iconic_words'].add(word)
         
         # Procesar palabras de niños
-        for word, count in stats['children_counted_words'].items():
+        for word, count_data in stats['children_counted_words'].items():
+            count = count_data['count']
             group_stats['children']['total_words'] += count
             if word in all_iconicity_words:
                 group_stats['children']['iconic_words'][word] = {
@@ -343,74 +346,28 @@ def main():
     # Mostrar estadísticas de palabras válidas
     print("\nMostrando estadísticas de palabras válidas por grupo de edad:")
     print_valid_words_statistics(valid_words_stats)
+    
+    # Crear y mostrar gráficas de análisis
+    print("\nCreando gráficas de análisis...")
+    plotter = DataAnalysisPlotter(valid_words_stats)
+    
+    # Gráfica general sin porcentajes
+    plotter.plot_iconic_vs_non_iconic_by_age('iconic_vs_non_iconic_by_age.png')
+    
+    # Gráficas separadas con porcentajes
+    plotter.plot_iconic_vs_non_iconic_by_age_adults('iconic_vs_non_iconic_by_age_adults.png')
+    plotter.plot_iconic_vs_non_iconic_by_age_children('iconic_vs_non_iconic_by_age_children.png')
+    
+    # Mostrar porcentajes de palabras icónicas y no icónicas para adultos
+    print("\nPorcentajes de palabras icónicas y no icónicas para adultos por grupo de edad:")
+    for age_group, stats in sorted(valid_words_stats.items()):
+        total_adults = stats['adults']['total_words']
+        iconic_pct = (stats['adults']['total_iconic_occurrences'] / total_adults * 100) if total_adults > 0 else 0
+        non_iconic_pct = (stats['adults']['total_non_iconic_occurrences'] / total_adults * 100) if total_adults > 0 else 0
+        print(f"\nGrupo de edad {age_group}:")
+        print(f"  Palabras icónicas: {iconic_pct:.1f}%")
+        print(f"  Palabras no icónicas: {non_iconic_pct:.1f}%")
 
-    # Procesar palabras válidas por grupo de edad
-    
-    # Mostrar estadísticas por grupo de edad este chunck 
-    # está probado y funciona
-    # print("\nEstadísticas por grupo de edad:")
-    # for age_group, data in sorted(data_grouped_by_age.items()):
-    #     children_count = len(data['children_data'])
-    #     adults_count = len(data['adults_data'])
-    #     files_count = len(data['files'])
-    #     print(f"\nGrupo de edad {age_group}:")
-    #     print(f"  Archivos: {files_count}")
-    #     print(f"  Expresiones de niños: {children_count}")
-    #     print(f"  Expresiones de adultos: {adults_count}")
-    #     print("  Archivos incluidos:")
-    #     for file in data['files']:
-    #         print(f"\n    - {file['child_name']} ({file['child_age']})")
-    #         print(f"      Grupo de edad: {file['age_group']}")
-    #         print(f"      Archivo: {file['file_path']}")
-    #         print(f"      Ejemplo de expresión del niño: {file['child_example']}")
-    #         print(f"      Ejemplo de expresión del adulto: {file['adult_example']}")
-    #         print("      " + "-" * 50)
-    
-    # # Crear el modelo de iconicidad
-    # print("\nCreando modelo de iconicidad...")
-    # formatter = DataFormatter()
-    # csv_data = formatter.format_csv_data_from('iconicity_ratings_cleaned.csv')
-    # iconicity_model = IconicityModel(csv_data)
-    
-    # # Mostrar las primeras 5 palabras del modelo
-    # print("\nPrimeras 5 palabras del modelo de iconicidad:")
-    # word_data = iconicity_model.get_all_word_data()
-    # for i, (word, data) in enumerate(word_data.items()):
-    #     if i >= 5:
-    #         break
-    #     print(f"\nPalabra: {word}")
-    #     print(f"Datos: {data}")
-    
-    # # Mostrar estadísticas finales
-    # print("\nProcesamiento completado.")
-    # total_children_utterances = 0
-    # total_adults_utterances = 0
-    
-    # for corpus_name in processed_data['Corpus_modified']:
-    #     corpus_children = 0
-    #     corpus_adults = 0
-    #     for dir_name, content in processed_data['Corpus_modified'][corpus_name].items():
-    #         if 'files' in content:
-    #             for file in content['files']:
-    #                 if 'children_data' in file:
-    #                     corpus_children += len(file['children_data'])
-    #                 if 'adults_data' in file:
-    #                     corpus_adults += len(file['adults_data'])
-        
-    #     print(f"\nCorpus {corpus_name}:")
-    #     print(f"  Total expresiones de niños: {corpus_children}")
-    #     print(f"  Total expresiones de adultos: {corpus_adults}")
-        
-    #     total_children_utterances += corpus_children
-    #     total_adults_utterances += corpus_adults
-    
-    # print(f"\nTotales globales:")
-    # print(f"  Total expresiones de niños: {total_children_utterances}")
-    # print(f"  Total expresiones de adultos: {total_adults_utterances}")
-
-    # # Mostrar las expresiones tempranas de Lew
-    # show_lew_early_expressions(processed_data)
-    
 def print_directory_structure(data, level=0):
     """
     Imprime la estructura del directorio de forma visual.
